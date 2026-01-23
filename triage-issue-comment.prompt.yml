@@ -50,60 +50,63 @@ responseFormat: json_schema
 jsonSchema: |- # json
   {
     "name": "analysis",
-    "type": "object",
-    "properties": {
-      "issue_nature": {
-        "type": "string",
-        "description": "The category of issue",
-        "enum": [
-          "bug report",
-          "feature request",
-          "other support"
-        ]
-      },
-      "release_version": {
-        "type": "string",
-        "description": "The category of issue",
-        "pattern": "^(v\\d+\\.\\d+\\.\\d+|)$"
-      },
-      "data_sources": {
-        "type": "array",
-        "description": "List of data sources",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "Name of the data source (identical to the input)"
-            },
-            "relevance": {
-              "enum": [
-                "relevant",
-                "somewhat relevant",
-                "not relevant"
-              ],
-              "type": "string",
-              "description": "Relevance of this data source to the issue"
-            },
-            "explanation": {
-              "type": "string",
-              "description": "Explanation of the data source's relevance to the issue"
-            }
-          },
-          "additionalProperties": false,
-          "required": [
-            "name",
-            "relevance",
-            "explanation"
+    "strict": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "issue_nature": {
+          "type": "string",
+          "description": "The category of issue",
+          "enum": [
+            "bug report",
+            "feature request",
+            "other support"
           ]
         },
-        "minItems": 1
-      }
-    },
-    "additionalProperties": false,
-    "required": [
-      "issue_nature",
-      "release_version",
-      "data_sources"
-    ]
+        "release_version": {
+          "type": "string",
+          "description": "The category of issue",
+          "pattern": "^(v\\d+\\.\\d+\\.\\d+|)$"
+        },
+        "data_sources": {
+          "type": "array",
+          "description": "List of data sources",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the data source (identical to the input)"
+              },
+              "relevance": {
+                "enum": [
+                  "relevant",
+                  "somewhat relevant",
+                  "not relevant"
+                ],
+                "type": "string",
+                "description": "Relevance of this data source to the issue"
+              },
+              "explanation": {
+                "type": "string",
+                "description": "Explanation of the data source's relevance to the issue"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "relevance",
+              "explanation"
+            ]
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "issue_nature",
+        "release_version",
+        "data_sources"
+      ]
+    }
   }
