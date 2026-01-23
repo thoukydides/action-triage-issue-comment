@@ -7,6 +7,9 @@ import { Analysis, AnalysisRelevance } from './analysis_json.js';
 import { getLatestRelease, getRelease } from './get_release.js';
 import { DataSource } from '../common/sources_yaml.js';
 
+// Maximum length for detail text in the table
+const MAX_DETAIL_CHARS = 300;
+
 // Details for a row of the report table
 export type ReportStatus = 'unavailable' | AnalysisRelevance;
 export interface ReportRow {
@@ -24,7 +27,7 @@ export function makeDataSourcesReport(sources: DataSource[], analysis: Analysis)
             const sourceAnalysis = analysis.data_sources.find(source => source.name === name);
             assertIsDefined(sourceAnalysis);
             const { relevance, explanation } = sourceAnalysis;
-            report.push({ status: relevance, name, detail: explanation });
+            report.push({ status: relevance, name, detail: sanitiseText(explanation) });
             break;
         }
         case 'failure':
@@ -62,7 +65,7 @@ export async function makeVersionReport(github: InstanceType<typeof GitHub>, ana
 }
 
 // Pretty format a date and time
-export function formatDateTime(date: Date): string {
+function formatDateTime(date: Date): string {
     return date.toLocaleString('en-GB', {
         year:   'numeric',
         month:  'long',
@@ -72,4 +75,41 @@ export function formatDateTime(date: Date): string {
         minute: '2-digit',
         hour12: true
     });
+}
+
+// Sanitise text for safe inclusion in a Markdown table cell
+function sanitiseText(text: string): string {
+    const [summary, detail] = breakText(text, MAX_DETAIL_CHARS);
+    return detail.length === 0
+        ? escapeMarkdown(summary)
+        : `<details><summary>${escapeMarkdown(summary)}…</summary>${escapeMarkdown(detail)}</details>`;
+}
+
+// Collapse whitespace and escape special Markdown characters
+function escapeMarkdown(text: string): string {
+    return text
+        .replace(/\s+/g, ' ').trim()
+        .replace(/[\\`*_{}<>[\]()#+\-.!|]/g, '\\$&');
+}
+
+// Split excessively long text (trying to use a good break point)
+const sentenceSegmenter = new Intl.Segmenter(undefined, { granularity: 'sentence' });
+const wordSegmenter     = new Intl.Segmenter(undefined, { granularity: 'word' });
+function breakText(text: string, maxChars: number): [string, string] {
+    if (text.length <= maxChars) return [text, ''];
+
+    // Try to break at a clean boundary
+    let breakPoint = maxChars;
+    for (const segmenter of [wordSegmenter, sentenceSegmenter]) {
+        const segments = [...segmenter.segment(text)];
+        const breakAfter = segments.findLast(({ index, segment, isWordLike }) =>
+            index + segment.length <= maxChars && isWordLike !== false);
+        if (breakAfter) breakPoint = breakAfter.index + breakAfter.segment.length;
+    }
+
+    // Split the text at the selected position
+    return [
+        text.substring(0, breakPoint).trimEnd(),
+        text.substring(breakPoint).trimStart()
+    ];
 }

@@ -26,7 +26,7 @@ messages:
            - `relevant` if the source is likely to help resolve the Issue, e.g. indicating an external cause or providing necessary context
            - `somewhat relevant` if it is partially helpful but not definitive, e.g. showing errors that are not obviously related to the Issue
            - `not relevant` if it does not help address the Issue, e.g. showing normal operation or unrelated information
-         - Provide a brief explanation of the data provided and the assessment (1-2 sentences), e.g.:
+         - Provide a brief explanation of the data provided and the assessment (1-2 sentences, clean prose without any Markdown special characters or links), e.g.:
            - "Automated tests are passing, indicating no obvious bugs in the codebase and API responses are normal"
            - "Changelog for upstream API shows additions for this appliance type, but not obviously related to the reported issue"
            - "Recent upstream API errors (over last 2 hours) match the timestamps of the reported issue, indicating a likely correlation"
