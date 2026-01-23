@@ -32791,8 +32791,8 @@ const STATUS_EMOJI = {
 function makeComment(report) {
     const lines = [
         // Table header
-        '| Status | Data Source | Detail',
-        '| ------ | ----------- | ------',
+        '| Relevance | Data Source | Detail',
+        '| :-------: | ----------- | ------',
         // Table body
         ...report.map(({ status, name, detail }) => {
             const icon = STATUS_EMOJI[status];
