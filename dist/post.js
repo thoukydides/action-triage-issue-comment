@@ -32689,6 +32689,8 @@ async function getReleaseSimplified(description, op) {
 
 // GitHub action
 // Copyright © 2026 Alexander Thoukydides
+// Maximum length for detail text in the table
+const MAX_DETAIL_CHARS = 300;
 // Convert the data sources and analysis into comment rows
 function makeDataSourcesReport(sources, analysis) {
     const report = [];
@@ -32698,7 +32700,7 @@ function makeDataSourcesReport(sources, analysis) {
                 const sourceAnalysis = analysis.data_sources.find(source => source.name === name);
                 assertIsDefined(sourceAnalysis);
                 const { relevance, explanation } = sourceAnalysis;
-                report.push({ status: relevance, name, detail: explanation });
+                report.push({ status: relevance, name, detail: sanitiseText(explanation) });
                 break;
             }
             case 'failure':
@@ -32742,11 +32744,42 @@ function formatDateTime(date) {
         hour12: true
     });
 }
+// Sanitise text for safe inclusion in a Markdown table cell
+function sanitiseText(text) {
+    const [summary, detail] = breakText(text, MAX_DETAIL_CHARS);
+    return detail.length === 0
+        ? escapeMarkdown(summary)
+        : `<details><summary>${escapeMarkdown(summary)}…</summary>${escapeMarkdown(detail)}</details>`;
+}
+// Collapse whitespace and escape special Markdown characters
+function escapeMarkdown(text) {
+    return text
+        .replace(/\s+/g, ' ').trim()
+        .replace(/[\\`*_{}<>[\]()#+\-.!|]/g, '\\$&');
+}
+// Split excessively long text (trying to use a good break point)
+const sentenceSegmenter = new Intl.Segmenter(undefined, { granularity: 'sentence' });
+const wordSegmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
+function breakText(text, maxChars) {
+    if (text.length <= maxChars)
+        return [text, ''];
+    // Try to break at a clean boundary
+    let breakPoint = maxChars;
+    for (const segmenter of [wordSegmenter, sentenceSegmenter]) {
+        const segments = [...segmenter.segment(text)];
+        const breakAfter = segments.findLast(({ index, segment, isWordLike }) => index + segment.length <= maxChars && isWordLike !== false);
+        if (breakAfter)
+            breakPoint = breakAfter.index + breakAfter.segment.length;
+    }
+    // Split the text at the selected position
+    return [
+        text.substring(0, breakPoint).trimEnd(),
+        text.substring(breakPoint).trimStart()
+    ];
+}
 
 // GitHub action
 // Copyright © 2026 Alexander Thoukydides
-// Maximum length for detail text in the table
-const MAX_DETAIL_CHARS = 300;
 // Mapping of status to emojis
 const STATUS_EMOJI = {
     'unavailable': '⚠️',
@@ -32763,7 +32796,7 @@ function makeComment(report) {
         // Table body
         ...report.map(({ status, name, detail }) => {
             const icon = STATUS_EMOJI[status];
-            return `| ${icon} | ${sanitiseTableCell(name)} | ${sanitiseTableCell(detail)} |`;
+            return `| ${icon} | ${name} | ${detail} |`;
         })
     ];
     return lines.join('\n');
@@ -32777,20 +32810,6 @@ function isCommentRelevant(report, analysis) {
         case 'feature request': return hasStatus('unavailable', 'relevant');
         case 'other support': return hasStatus('unavailable', 'relevant', 'somewhat relevant');
     }
-}
-// Sanitise text for safe inclusion in a Markdown table cell
-function sanitiseTableCell(text) {
-    text = text
-        .replace(/\s+/g, ' ').trim() // Collapse whitespace
-        .replace(/\|/g, '\\|'); // Escape pipe characters
-    // Truncate if excessively long (at a word boundary if possible)
-    if (MAX_DETAIL_CHARS < text.length) {
-        let breakLength = text.lastIndexOf(' ', MAX_DETAIL_CHARS - 1);
-        if (breakLength === -1)
-            breakLength = MAX_DETAIL_CHARS - 1;
-        text = text.substring(0, breakLength) + '…';
-    }
-    return text;
 }
 
 // GitHub action
