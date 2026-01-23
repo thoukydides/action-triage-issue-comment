@@ -16,8 +16,8 @@ const STATUS_EMOJI: Record<ReportStatus, string> = {
 export function makeComment(report: ReportRow[]): string {
     const lines = [
         // Table header
-        '| Status | Data Source | Detail',
-        '| ------ | ----------- | ------',
+        '| Relevance | Data Source | Detail',
+        '| :-------: | ----------- | ------',
         // Table body
         ...report.map(({ status, name, detail }) => {
             const icon = STATUS_EMOJI[status];
