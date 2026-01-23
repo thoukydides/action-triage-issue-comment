@@ -49,6 +49,7 @@ responseFormat: json_schema
 
 jsonSchema: |- # json
   {
+    "name": "analysis",
     "type": "object",
     "properties": {
       "issue_nature": {

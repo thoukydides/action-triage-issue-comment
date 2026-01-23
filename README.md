@@ -81,13 +81,14 @@ jobs:
   run-test:
     runs-on: ubuntu-latest
     outputs:
-      value: ${{ steps.fetch.outputs.errors }}
+      value: ${{ steps.test.outputs.errors }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - name: Install, build, and run the tests
+        id: test
         run: | # shell
           npm ci
           npm run build
