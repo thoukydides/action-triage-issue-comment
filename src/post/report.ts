@@ -5,7 +5,7 @@ import { GitHub } from '@actions/github/lib/utils.js';
 import { assertIsDefined } from '../common/utils.js';
 import { Analysis, AnalysisRelevance } from './analysis_json.js';
 import { getLatestRelease, getRelease } from './get_release.js';
-import { DataSource } from '../common/sources_yaml.js';
+import { DataSource } from '../common/needs_to_sources.js';
 
 // Maximum length for detail text in the table
 const MAX_DETAIL_CHARS = 300;

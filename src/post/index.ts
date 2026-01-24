@@ -3,7 +3,7 @@
 
 import * as core from '@actions/core';
 import { GitHub } from '@actions/github/lib/utils.js';
-import { parseDataSourcesJSON } from '../common/sources_yaml.js';
+import { parseNeedsToSources } from '../common/needs_to_sources.js';
 import { parseAnalysisJSON } from './analysis_json.js';
 import { plural } from '../common/utils.js';
 import { makeDataSourcesReport, makeVersionReport } from './report.js';
@@ -12,11 +12,11 @@ import { isCommentRelevant, makeComment } from './comment.js';
 // Script entry point
 export default async function run(github: InstanceType<typeof GitHub>): Promise<string> {
     // Action inputs
-    const sourcesJSON   = process.env.SOURCES   ?? '';
+    const needs         = core.getInput('needs', { required: true });
     const analysisJSON  = process.env.ANALYSIS  ?? '';
 
-    // Parse the input sources JSON and analysis JSON
-    const sources   = parseDataSourcesJSON(sourcesJSON);
+    // Parse the input needs JSON and analysis JSON
+    const sources = parseNeedsToSources(needs);
     const analysedSourceNames = sources.filter(({ status }) => status === 'success').map(({ name }) => name);
     const analysis  = parseAnalysisJSON(analysisJSON, analysedSourceNames);
     core.info(`${analysis.data_sources.length} of ${plural(sources.length, 'data source')} analysed`);

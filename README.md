@@ -34,18 +34,18 @@ Various inputs are defined in the action to configure its operation:
 | Name | Description | Default
 | --- | --- | ---
 | `issue_number` | The GitHub issue to analyse | *required*
-| `sources` | String containing a YAML sequence of data sources and their statuses | *required*
+| `needs` | JSON data structure with the same shape as the GitHub Actions `needs` context, with one job per data source | *required*
 | `sources_tokens` | The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context) | `4000`
 | `dry_run` | Disables actions that modify the issue (adding the comment and minimising previous comments) for testing | `false`
 
-The `sources` value should be a string containing a YAML sequence of mappings (array of objects); one for each data source. Each mapping should provide:
+The `needs` input has the following properties:
 
-| Key | Description | Default
+| Property Name | Description | Default
 | --- | --- | ---
-| `name` | Name of the data source (used to in the comment) | *required*
-| `status` | The result of the job that generated this data source (`success`, `failure`, or `skipped`) | `success`
-| `value` | The (multiline) value for this data source, e.g. error messages or changelog excerpt | *required*
-| `prompt` | Brief instructions to include in the AI's prompt to guide its handling of this data source
+| `needs.<job_id>.result` | The result of the job that generated this data source (`success`, `failure`, or `skipped`) | *required*
+| `needs.<job_id>.outputs.name` | Name of the data source (used in the comment) | `<job_id>`
+| `needs.<job_id>.outputs.value` | The (multiline) value for this data source, e.g. error messages or changelog excerpt | `''`
+| `needs.<job_id>.outputs.prompt` | Optional brief instructions to include in the AI's prompt to guide its handling of this data source |
 
 Note:
 - `skipped` sources are dropped (not supplied to the AI model or included in the output comment)
@@ -81,7 +81,9 @@ jobs:
   run-test:
     runs-on: ubuntu-latest
     outputs:
+      name: Plugin build and test
       value: ${{ steps.test.outputs.errors }}
+      prompt: Treat any error or warning message as fatal
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -97,20 +99,20 @@ jobs:
   api-changelog:
     runs-on: ubuntu-latest
     outputs:
-      value: ${{ steps.fetch.outputs.page_content }}
+      name: Home Connect API changelog
+      value: ${{ steps.fetch.outputs.changelog }}
     steps:
     - name: Retrieve API changelog
       id: fetch
       env:
         URL: https://developer.home-connect.com/changelog
       run: | # shell
-        {
-          echo 'page_content<<EOF'
-          curl -sL "$URL"
-          echo EOF
-        } >> "$GITHUB_OUTPUT"
+        CHANGELOG=$(curl -s "$URL")
+        echo "changelog<<EOF"      >> "$GITHUB_OUTPUT"
+        printf '%s\n' "$CHANGELOG" >> "$GITHUB_OUTPUT"
+        echo "EOF"                 >> "$GITHUB_OUTPUT"
 
-  marshal:
+  collate:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
     needs: [run-test, api-changelog]
@@ -120,16 +122,7 @@ jobs:
       with:
         # Use the event issue number for label triggers, or the manual input for workflow_dispatch
         issue_number: ${{ github.event.issue.number || fromJson(inputs.issue_number) }}
-        sources: | # yaml
-          - name: Plugin build and test
-            status: ${{ needs.run-test.result }}
-            value: |
-              ${{ needs.run-test.outputs.value }}
-            prompt: Treat any error or warning message as fatal
-          - name: Home Connect API changelog
-            status: ${{ needs.api-changelog.result }}
-            value: |
-              ${{ needs.api-changelog.outputs.value }}
+        needs: ${{ toJSON(needs) }}
         dry_run: ${{ inputs.dry_run }}
 ```
 

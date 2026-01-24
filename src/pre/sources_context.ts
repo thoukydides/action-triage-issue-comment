@@ -1,7 +1,7 @@
 // GitHub action
 // Copyright © 2026 Alexander Thoukydides
 
-import { DataSource } from '../common/sources_yaml.js';
+import { DataSource } from '../common/needs_to_sources.js';
 
 // Data sources prepared for use in the AI prompt
 export type SourceContextValue = string | Record<string, unknown> | unknown[] | number | boolean | null;

@@ -10,8 +10,8 @@ inputs:
     description: The GitHub issue to analyse
     type: number
     required: true
-  sources:
-    description: String containing a YAML sequence of data sources and their statuses
+  needs:
+    description: JSON data structure with the same shape as the GitHub Actions 'needs' context, with one job per data source
     type: string
     required: true
   sources_tokens:
@@ -31,7 +31,7 @@ runs:
       id: context
       uses: actions/github-script@v7
       env:
-        INPUT_SOURCES:  ${{ inputs.sources }}
+        INPUT_NEEDS:    ${{ inputs.needs }}
         MAX_TOKENS:     ${{ inputs.sources_tokens }}
         PROMPT_TOKENS:  700  # Measured using https://platform.openai.com/tokenizer
       with:
@@ -54,8 +54,8 @@ runs:
       id: comment
       uses: actions/github-script@v7
       env:
-        SOURCES:  ${{ steps.context.outputs.sources }}
-        ANALYSIS: ${{ steps.analyse.outputs.response }}
+        INPUT_SOURCES:  ${{ inputs.needs }}
+        ANALYSIS:       ${{ steps.analyse.outputs.response }}
       with:
         result-encoding: string
         script: | # javascript

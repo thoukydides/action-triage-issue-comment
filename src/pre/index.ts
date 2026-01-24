@@ -3,7 +3,7 @@
 
 import * as core from '@actions/core';
 import { GitHub } from '@actions/github/lib/utils.js';
-import { parseDataSourcesYAML } from '../common/sources_yaml.js';
+import { parseNeedsToSources } from '../common/needs_to_sources.js';
 import { getSourcesContextChars, makeSourcesContext, SourceContext } from './sources_context.js';
 import { plural } from '../common/utils.js';
 import { truncateContext } from './truncate_context.js';
@@ -14,12 +14,12 @@ const CHARS_PER_TOKEN = 3; // (assume worst case when truncating to fit)
 // Script entry point
 export default function run(_github: InstanceType<typeof GitHub>): SourceContext[] {
     // Action inputs
-    const sourcesYaml   = core.getInput('sources', { required: true });
+    const needs         = core.getInput('needs', { required: true });
     const maxTokens     = Number(process.env.MAX_TOKENS);
     const promptTokens  = Number(process.env.PROMPT_TOKENS);
 
-    // Parse the sources input as YAML and select sources to be analysed
-    const sources = parseDataSourcesYAML(sourcesYaml);
+    // Parse the needs input as JSON and select sources to be analysed
+    const sources = parseNeedsToSources(needs);
     const analyseSources = sources.filter(({ status }) => status === 'success');
     core.info(`${analyseSources.length} of ${plural(sources.length, 'data source')} to be analysed`);
     core.debug(JSON.stringify(sources, null, 4));
@@ -41,6 +41,5 @@ export default function run(_github: InstanceType<typeof GitHub>): SourceContext
 
     // Provide the updated token count as a discrete output and return the context
     core.setOutput('prompt_tokens', promptTokens + contextTokens);
-    core.setOutput('sources',       sources);
     return truncatedContext;
 }
