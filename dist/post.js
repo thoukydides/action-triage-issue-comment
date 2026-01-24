@@ -28611,7 +28611,7 @@ function parseDataSourcesJSON(sources) {
 // Copyright © 2026 Alexander Thoukydides
 // The expected structure of the analysis JSON produced by the AI model
 const ANALYSIS_NATURE = ['bug report', 'feature request', 'other support'];
-const ANALYSIS_RELEVANCE = ['relevant', 'somewhat relevant', 'not relevant'];
+const ANALYSIS_RELEVANCE = ['directly relevant', 'possibly relevant', 'not relevant', 'not applicable'];
 const ANALYSIS_VERSION_PATTERN = /^(v\d+\.\d+\.\d+|)$/;
 // Parse the AI result and rigorously validate its structure
 function parseAnalysisJSON(analysisJson, sourceNames) {
@@ -32700,7 +32700,9 @@ function makeDataSourcesReport(sources, analysis) {
                 const sourceAnalysis = analysis.data_sources.find(source => source.name === name);
                 assertIsDefined(sourceAnalysis);
                 const { relevance, explanation } = sourceAnalysis;
-                report.push({ status: relevance, name, detail: sanitiseText(explanation) });
+                if (relevance !== 'not applicable') {
+                    report.push({ status: relevance, name, detail: sanitiseText(explanation) });
+                }
                 break;
             }
             case 'failure':
@@ -32726,7 +32728,7 @@ async function makeVersionReport(github, analysis) {
         name: 'Release version',
         detail: `Issue references the latest release **${latestRelease.version}**`
     } : {
-        status: 'somewhat relevant',
+        status: 'possibly relevant',
         name: 'Release version',
         detail: `Issue references release **${issueRelease.version}**,`
             + ` but **${latestRelease.version}** was released ${latestPublished}`
@@ -32783,9 +32785,10 @@ function breakText(text, maxChars) {
 // Mapping of status to emojis
 const STATUS_EMOJI = {
     'unavailable': '⚠️',
-    'relevant': '🔴',
-    'somewhat relevant': '🟡',
-    'not relevant': '🟢'
+    'directly relevant': '🔴',
+    'possibly relevant': '🟡',
+    'not relevant': '🟢',
+    'not applicable': '👻' // (gets filtered out)
 };
 // Convert the report rows into Markdown suitable for an issue comment
 function makeComment(report) {
@@ -32807,8 +32810,8 @@ function isCommentRelevant(report, analysis) {
     // Strategy depends on the apparent issue category and statuses
     switch (analysis.issue_nature) {
         case 'bug report': return 0 < report.length; // (even 'all good' is useful)
-        case 'feature request': return hasStatus('unavailable', 'relevant');
-        case 'other support': return hasStatus('unavailable', 'relevant', 'somewhat relevant');
+        case 'feature request': return hasStatus('unavailable', 'directly relevant');
+        case 'other support': return hasStatus('unavailable', 'directly relevant', 'possibly relevant');
     }
 }
 
