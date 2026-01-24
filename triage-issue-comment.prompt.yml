@@ -22,25 +22,37 @@ messages:
       3. For each of the provided Data Sources, assess its relevance to the Issue:
          - Use the same `name` as provided to identify each source
          - If an `instruction` has been provided for the source, follow it carefully
-         - Provide an overall relevance assessment:
-           - `relevant` if the source is likely to help resolve the Issue, e.g. indicating an external cause or providing necessary context
-           - `somewhat relevant` if it is partially helpful but not definitive, e.g. showing errors that are not obviously related to the Issue
-           - `not relevant` if it does not help address the Issue, e.g. showing normal operation or unrelated information
-         - Provide a brief explanation of the data provided and the assessment (1-2 sentences, clean prose without any Markdown special characters or links), e.g.:
-           - "Automated tests are passing, indicating no obvious bugs in the codebase and API responses are normal"
-           - "Changelog for upstream API shows additions for this appliance type, but not obviously related to the reported issue"
-           - "Recent upstream API errors (over last 2 hours) match the timestamps of the reported issue, indicating a likely correlation"
+         - Provide an overall relevance assessment based on BOTH the data source's applicability to the issue type AND its content:
+           - `directly relevant` if the source provides strong evidence that helps resolve the Issue, such as:
+             - Indicating an external cause (e.g. matching timestamps for API errors)
+             - Showing errors directly related to the reported problem
+             - Providing definitive context or confirmation
+           - `possibly relevant` if the source provides weak or uncertain signals, such as:
+             - Showing errors that might be related but lack clear correlation
+             - Mentioning related functionality without obvious connection
+             - Providing tangential information that could be helpful
+           - `not relevant` if the source is applicable to this issue type but shows "all clear", such as:
+             - Tests passing when a bug is reported
+             - API operating normally when issues are reported
+             - No related changes in changelogs
+           - `not applicable` if the data source is fundamentally orthogonal to this issue type, such as:
+             - API operational status for a feature request about logging behaviour
+             - Third-party dependency changelogs for unrelated authentication issues
+             - Build/test results for documentation or enhancement requests
+         - Provide a brief explanation of the data provided and the assessment (1-2 sentences, clean prose without any Markdown special characters or links) e.g.
+           - `directly relevant`: "Recent upstream API errors (over last 2 hours) match the timestamps of the reported issue, indicating a likely correlation"
+           - `possibly relevant`: "Changelog for upstream API shows additions for this appliance type, but not obviously related to the reported issue"
+           - `not relevant`: "Automated tests are passing, indicating no obvious bugs in the codebase and API responses are normal"
+           - `not applicable`: "API operational status is not relevant to feature enhancement requests"
 
       Provide the results in JSON format.
 
       # Issue
-
       ```json
       {{context}}
       ```
 
       # Data Sources
-
       ```json
       {{data}}
       ```
@@ -65,12 +77,12 @@ jsonSchema: |- # json
         },
         "release_version": {
           "type": "string",
-          "description": "The category of issue",
+          "description": "The release version mentioned in the issue",
           "pattern": "^(v\\d+\\.\\d+\\.\\d+|)$"
         },
         "data_sources": {
           "type": "array",
-          "description": "List of data sources",
+          "description": "List of data sources with relevance assessments",
           "items": {
             "type": "object",
             "properties": {
@@ -80,16 +92,17 @@ jsonSchema: |- # json
               },
               "relevance": {
                 "enum": [
-                  "relevant",
-                  "somewhat relevant",
-                  "not relevant"
+                  "directly relevant",
+                  "possibly relevant",
+                  "not relevant",
+                  "not applicable"
                 ],
                 "type": "string",
                 "description": "Relevance of this data source to the issue"
               },
               "explanation": {
                 "type": "string",
-                "description": "Explanation of the data source's relevance to the issue"
+                "description": "Brief explanation of the assessment (1-2 sentences)"
               }
             },
             "additionalProperties": false,

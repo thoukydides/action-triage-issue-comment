@@ -5,7 +5,7 @@ import { hasProperties, isObject, isString, isStringEnum } from '../common/utils
 
 // The expected structure of the analysis JSON produced by the AI model
 const ANALYSIS_NATURE           = ['bug report', 'feature request', 'other support'] as const;
-const ANALYSIS_RELEVANCE        = ['relevant', 'somewhat relevant', 'not relevant'] as const;
+const ANALYSIS_RELEVANCE        = ['directly relevant', 'possibly relevant', 'not relevant', 'not applicable'] as const;
 export type AnalysisNature      = typeof ANALYSIS_NATURE[number];
 export type AnalysisRelevance   = typeof ANALYSIS_RELEVANCE[number];
 export type AnalysisVersion     = `v${number}.${number}.${number}` | '';

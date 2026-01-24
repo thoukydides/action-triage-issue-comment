@@ -7,9 +7,10 @@ import { ReportRow, ReportStatus } from './report.js';
 // Mapping of status to emojis
 const STATUS_EMOJI: Record<ReportStatus, string> = {
     'unavailable':          '⚠️',
-    'relevant':             '🔴',
-    'somewhat relevant':    '🟡',
-    'not relevant':         '🟢'
+    'directly relevant':    '🔴',
+    'possibly relevant':    '🟡',
+    'not relevant':         '🟢',
+    'not applicable':       '👻' // (gets filtered out)
 };
 
 // Convert the report rows into Markdown suitable for an issue comment
@@ -35,7 +36,7 @@ export function isCommentRelevant(report: ReportRow[], analysis: Analysis): bool
     // Strategy depends on the apparent issue category and statuses
     switch (analysis.issue_nature) {
     case 'bug report':      return 0 < report.length; // (even 'all good' is useful)
-    case 'feature request': return hasStatus('unavailable', 'relevant');
-    case 'other support':   return hasStatus('unavailable', 'relevant', 'somewhat relevant');
+    case 'feature request': return hasStatus('unavailable', 'directly relevant');
+    case 'other support':   return hasStatus('unavailable', 'directly relevant', 'possibly relevant');
     }
 }

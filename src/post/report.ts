@@ -27,7 +27,9 @@ export function makeDataSourcesReport(sources: DataSource[], analysis: Analysis)
             const sourceAnalysis = analysis.data_sources.find(source => source.name === name);
             assertIsDefined(sourceAnalysis);
             const { relevance, explanation } = sourceAnalysis;
-            report.push({ status: relevance, name, detail: sanitiseText(explanation) });
+            if (relevance !== 'not applicable') {
+                report.push({ status: relevance, name, detail: sanitiseText(explanation) });
+            }
             break;
         }
         case 'failure':
@@ -57,7 +59,7 @@ export async function makeVersionReport(github: InstanceType<typeof GitHub>, ana
         name:   'Release version',
         detail: `Issue references the latest release **${latestRelease.version}**`
     } : {
-        status: 'somewhat relevant',
+        status: 'possibly relevant',
         name:   'Release version',
         detail: `Issue references release **${issueRelease.version}**,`
                 + ` but **${latestRelease.version}** was released ${latestPublished}`

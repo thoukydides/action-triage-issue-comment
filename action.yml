@@ -33,7 +33,7 @@ runs:
       env:
         INPUT_SOURCES:  ${{ inputs.sources }}
         MAX_TOKENS:     ${{ inputs.sources_tokens }}
-        PROMPT_TOKENS:  500  # Measured using https://platform.openai.com/tokenizer
+        PROMPT_TOKENS:  700  # Measured using https://platform.openai.com/tokenizer
       with:
         script: | # javascript
           const { default: fn } = await import('${{ github.action_path }}/dist/pre.js');
