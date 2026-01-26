@@ -25,7 +25,7 @@ inputs:
     description: The number of input tokens reserved for the prompt template itself (deducted from input_tokens when truncating the issue)
     type: number
     default: 700 # Measured using https://platform.openai.com/tokenizer
-  sources_tokens:
+  input_sources_tokens:
     description: The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context)
     type: number
     default: 4000 # Half of the 8000 token input context limit
@@ -42,9 +42,9 @@ runs:
       id: context
       uses: actions/github-script@v7
       env:
-        INPUT_NEEDS:          ${{ inputs.needs }}
-        INPUT_SOURCES_TOKENS: ${{ inputs.sources_tokens }}
-        INPUT_PROMPT_TOKENS:  ${{ inputs.prompt_tokens }}
+        INPUT_NEEDS:                ${{ inputs.needs }}
+        INPUT_INPUT_SOURCES_TOKENS: ${{ inputs.input_sources_tokens }}
+        INPUT_INPUT_PROMPT_TOKENS:  ${{ inputs.input_prompt_tokens }}
       with:
         script: | # javascript
           const { default: fn } = await import('${{ github.action_path }}/dist/pre.js');
