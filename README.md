@@ -35,8 +35,14 @@ Various inputs are defined in the action to configure its operation:
 | --- | --- | ---
 | `issue_number` | The GitHub issue to analyse | *required*
 | `needs` | JSON data structure with the same shape as the GitHub Actions `needs` context, with one job per data source | *required*
+| `prompt_file` | Path to a custom `.prompt.yml` file containing the AI prompt template | Internal `'triage-issue-comment.prompt.yml'`
+| `prompt_vars` | Additional template variables in YAML format to substitute into the AI prompt | `''`
+| `input_prompt_tokens` | The number of input tokens reserved for the prompt template itself (deducted from `input_tokens` when truncating the issue) | `700`
 | `sources_tokens` | The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context) | `4000`
 | `dry_run` | Disables actions that modify the issue (adding the comment and minimising previous comments) for testing | `false`
+
+> [!CAUTION]
+> The token count is measured using the `o200k_base` encoding. This is suitable for the default prompt's `openai/gpt-4.1` model (and other models in the `o1`, `o3`, `o4-mini`, `gpt-5`, `gpt-4.1`, and `gpt-4o` families). It will give unreliable results for models that use different encodings.
 
 The `needs` input has the following properties:
 
@@ -50,6 +56,18 @@ The `needs` input has the following properties:
 Note:
 - `skipped` sources are dropped (not supplied to the AI model or included in the output comment)
 - `failure` sources are not supplied to the AI model, but are listed as unavailable in the output comment
+
+## Prompt Variables
+
+The following variables are substituted in the `.prompt.yml` template:
+
+| Variable | Description
+| --- | ---
+| `{{context}}` | The issue body and comments as a minified JSON string (truncated as necessary to fit within the model's input context)
+| `{{owner}}` | The user ID of the repo owner
+| `{{release}}` | The tag of the latest non-prerelease, or `'latest release'` if none
+| `{{user}}` | The user ID of the issue's creator
+| `{{data}}` | The prepared data sources (derived from `needs`) as a minified JSON string (truncated as necessary to fit within the model's input context)
 
 ## Usage
 

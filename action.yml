@@ -14,6 +14,17 @@ inputs:
     description: JSON data structure with the same shape as the GitHub Actions 'needs' context, with one job per data source
     type: string
     required: true
+  prompt_file:
+    description: Path to a custom .prompt.yml file containing the AI prompt template
+    type: string
+  prompt_vars:
+    description: Additional template variables in YAML format to substitute into the AI prompt
+    type: string
+    default: ''
+  input_prompt_tokens:
+    description: The number of input tokens reserved for the prompt template itself (deducted from input_tokens when truncating the issue)
+    type: number
+    default: 700 # Measured using https://platform.openai.com/tokenizer
   sources_tokens:
     description: The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context)
     type: number
@@ -31,9 +42,9 @@ runs:
       id: context
       uses: actions/github-script@v7
       env:
-        INPUT_NEEDS:    ${{ inputs.needs }}
-        MAX_TOKENS:     ${{ inputs.sources_tokens }}
-        PROMPT_TOKENS:  700  # Measured using https://platform.openai.com/tokenizer
+        INPUT_NEEDS:          ${{ inputs.needs }}
+        INPUT_SOURCES_TOKENS: ${{ inputs.sources_tokens }}
+        INPUT_PROMPT_TOKENS:  ${{ inputs.prompt_tokens }}
       with:
         script: | # javascript
           const { default: fn } = await import('${{ github.action_path }}/dist/pre.js');
@@ -44,11 +55,12 @@ runs:
       uses: thoukydides/action-issue-ai-summary@v1
       with:
         issue_number: ${{ inputs.issue_number }}
-        prompt_file: ${{ github.action_path }}/triage-issue-comment.prompt.yml
+        prompt_file: ${{ inputs.prompt_file || format('{0}/triage-issue-comment.prompt.yml', github.action_path) }}
         input_prompt_tokens: ${{ steps.context.outputs.prompt_tokens }}
         prompt_vars: |
           data: >-
             ${{ steps.context.outputs.result }}
+          ${{ inputs.prompt_vars }}
 
     - name: Post-process the LLM output to prepare a comment
       id: comment
