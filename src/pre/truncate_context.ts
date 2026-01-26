@@ -4,7 +4,7 @@
 import * as core from '@actions/core';
 import { SourceContext, SourceContextValue } from './sources_context.js';
 import { plural } from '../common/utils.js';
-import { fitTokens, jsonTokens, TokenFitResult } from './tokens.js';
+import { fitTokens, getTokensResult, jsonTokens, TokenFitResult } from './tokens.js';
 import { truncateText } from './truncate_text.js';
 
 // Truncate the issue to fit within the available input context
@@ -53,6 +53,10 @@ function selectMaxTokens(sourceTokens: number[], availableTokens: number): numbe
 
 // Truncate an arbitrary value type to the specified maximum length
 function truncateJson(value: SourceContextValue, maxTokens: number): TokenFitResult<SourceContextValue, null> {
+    // Ensure value not converted to JSON if already small enough
+    const result = getTokensResult(() => ({ value, context: null }), maxTokens, 0);
+    if (result.done) return result;
+
     // If the value is an array then try removing elements to satisfy the target
     if (Array.isArray(value)) {
         const result = truncateArray(value, maxTokens);
