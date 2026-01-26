@@ -3,13 +3,13 @@ model: openai/gpt-4.1
 messages:
 
   - role: system
-    content: |
+    content: |-
       You are a technical triage lead for @{{owner}}.
       Your goal is to analyse the provided data sources to determine their relevance to a new GitHub issue.
       Use British English.
 
   - role: user
-    content: | # markdown
+    content: |- # markdown
       A GitHub Issue has been raised and a range of dynamic Data Sources have been collected to help triage it. Analyse the information provided to determine:
 
       1. The nature of the Issue (where multiple apply, select the first applicable from this list):

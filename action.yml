@@ -47,7 +47,7 @@ runs:
         prompt_file: ${{ github.action_path }}/triage-issue-comment.prompt.yml
         input_prompt_tokens: ${{ steps.context.outputs.prompt_tokens }}
         prompt_vars: |
-          data: |
+          data: >-
             ${{ steps.context.outputs.result }}
 
     - name: Post-process the LLM output to prepare a comment
