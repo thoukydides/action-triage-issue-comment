@@ -28055,6 +28055,10 @@ function selectMaxTokens(sourceTokens, availableTokens) {
 }
 // Truncate an arbitrary value type to the specified maximum length
 function truncateJson(value, maxTokens) {
+    // Ensure value not converted to JSON if already small enough
+    const result = getTokensResult(() => ({ value, context: null }), maxTokens, 0);
+    if (result.done)
+        return result;
     // If the value is an array then try removing elements to satisfy the target
     if (Array.isArray(value)) {
         const result = truncateArray(value, maxTokens);
