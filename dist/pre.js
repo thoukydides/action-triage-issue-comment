@@ -28092,8 +28092,8 @@ function fitText(value, maxTokens) {
 function run(_github) {
     // Action inputs
     const needs = coreExports.getInput('needs', { required: true });
-    const maxTokens = Number(coreExports.getInput('sources_tokens', { required: true }));
-    const promptTokens = Number(coreExports.getInput('prompt_tokens', { required: true }));
+    const maxTokens = Number(coreExports.getInput('input_sources_tokens', { required: true }));
+    const promptTokens = Number(coreExports.getInput('input_prompt_tokens', { required: true }));
     // Parse the needs input as JSON and select sources to be analysed
     const sources = parseNeedsToSources(needs);
     const analyseSources = sources.filter(({ status }) => status === 'success');
