@@ -27555,6 +27555,8 @@ function parseNeedsToSources(needsJSON) {
     return Object.entries(needs).map(([job, { result, outputs }]) => ({
         status: result,
         name: outputs?.name ?? job,
+        name_md: outputs?.name_md,
+        url: outputs?.url,
         value: outputs?.value ?? '',
         prompt: outputs?.prompt
     }));

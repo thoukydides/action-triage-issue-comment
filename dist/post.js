@@ -27588,6 +27588,8 @@ function parseNeedsToSources(needsJSON) {
     return Object.entries(needs).map(([job, { result, outputs }]) => ({
         status: result,
         name: outputs?.name ?? job,
+        name_md: outputs?.name_md,
+        url: outputs?.url,
         value: outputs?.value ?? '',
         prompt: outputs?.prompt
     }));
@@ -31715,19 +31717,21 @@ const MAX_DETAIL_CHARS = 300;
 // Convert the data sources and analysis into comment rows
 function makeDataSourcesReport(sources, analysis) {
     const report = [];
-    for (const { name, status } of sources) {
+    for (const { name, name_md, url, status } of sources) {
+        const title = name_md?.trim() ? name_md
+            : url?.trim() ? `[${name}](${url})` : name;
         switch (status) {
             case 'success': {
                 const sourceAnalysis = analysis.data_sources.find(source => source.name === name);
                 assertIsDefined(sourceAnalysis);
                 const { relevance, explanation } = sourceAnalysis;
                 if (relevance !== 'not applicable') {
-                    report.push({ status: relevance, name, detail: sanitiseText(explanation) });
+                    report.push({ status: relevance, title, detail: sanitiseText(explanation) });
                 }
                 break;
             }
             case 'failure':
-                report.push({ status: 'unavailable', name, detail: 'Not available *(check workflow run for details)*' });
+                report.push({ status: 'unavailable', title, detail: 'Not available *(check workflow run for details)*' });
                 break;
         }
     }
@@ -31744,15 +31748,16 @@ async function makeVersionReport(github, analysis) {
         return;
     // Report depends on whether the issue referenced the latest release
     const latestPublished = formatDateTime(latestRelease.published_at);
+    const latestReleaseLink = `[${latestRelease.version}](${latestRelease.url})`;
     return latestRelease.version === issueRelease.version ? {
         status: 'not relevant',
-        name: 'Release version',
-        detail: `Issue references the latest release **${latestRelease.version}**`
+        title: 'Release version',
+        detail: `Issue references the latest release ${latestReleaseLink}`
     } : {
         status: 'possibly relevant',
-        name: 'Release version',
+        title: 'Release version',
         detail: `Issue references release **${issueRelease.version}**,`
-            + ` but **${latestRelease.version}** was released ${latestPublished}`
+            + ` but **${latestReleaseLink}** was released ${latestPublished}`
     };
 }
 // Pretty format a date and time
@@ -31818,9 +31823,9 @@ function makeComment(report) {
         '| Relevance | Data Source | Detail',
         '| :-------: | ----------- | ------',
         // Table body
-        ...report.map(({ status, name, detail }) => {
+        ...report.map(({ status, title, detail }) => {
             const icon = STATUS_EMOJI[status];
-            return `| ${icon} | ${name} | ${detail} |`;
+            return `| ${icon} | ${title} | ${detail} |`;
         })
     ];
     return lines.join('\n');
