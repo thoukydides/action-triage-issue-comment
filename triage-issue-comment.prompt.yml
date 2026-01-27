@@ -39,11 +39,11 @@ messages:
              - API operational status for a feature request about logging behaviour
              - Third-party dependency changelogs for unrelated authentication issues
              - Build/test results for documentation or enhancement requests
-         - Provide a brief explanation of the data provided and the assessment (1-2 sentences, clean prose without any Markdown special characters or links) e.g.
-           - `directly relevant`: "Recent upstream API errors (over last 2 hours) match the timestamps of the reported issue, indicating a likely correlation"
-           - `possibly relevant`: "Changelog for upstream API shows additions for this appliance type, but not obviously related to the reported issue"
-           - `not relevant`: "Automated tests are passing, indicating no obvious bugs in the codebase and API responses are normal"
-           - `not applicable`: "API operational status is not relevant to feature enhancement requests"
+         - Provide a brief explanation of the data provided and the assessment (clean prose without any Markdown special characters or links) e.g.
+           - `directly relevant` (1-4 sentences): "Recent upstream API errors (over last 2 hours) match the timestamps of the reported issue, indicating a likely correlation"
+           - `possibly relevant` (1-2 sentences): "Changelog for upstream API shows additions for this appliance type, but not obviously related to the reported issue"
+           - `not relevant` (1 short sentence): "Automated tests are passing, indicating no obvious bugs in the codebase and API responses are normal"
+           - `not applicable` (1 short sentence): "API operational status is not relevant to feature enhancement requests"
 
       Provide the results in JSON format.
 
