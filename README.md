@@ -49,8 +49,10 @@ The `needs` input has the following properties:
 | Property Name | Description | Default
 | --- | --- | ---
 | `needs.<job_id>.result` | The result of the job that generated this data source (`success`, `failure`, or `skipped`) | *required*
-| `needs.<job_id>.outputs.name` | Name of the data source (used in the comment) | `<job_id>`
-| `needs.<job_id>.outputs.value` | The (multiline) value for this data source, e.g. error messages or changelog excerpt | `''`
+| `needs.<job_id>.outputs.name` | Name of the data source, both for the AI model and used in the comment | `<job_id>`
+| `needs.<job_id>.outputs.name_md` | Optional display version of the data source name for use in the comment; may include Markdown formatting |
+| `needs.<job_id>.outputs.url` | Optional URL for the data source, used in the comment if `name_md` is not provided |
+| `needs.<job_id>.outputs.value` | The value for this data source, e.g. error messages or changelog excerpt | `''`
 | `needs.<job_id>.outputs.prompt` | Optional brief instructions to include in the AI's prompt to guide its handling of this data source |
 
 Note:
@@ -100,6 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       name: Plugin build and test
+      name_md: Test `${{ github.action_repository }}`@HEAD
       value: ${{ steps.test.outputs.errors }}
       prompt: Treat any error or warning message as fatal
     steps:
@@ -119,11 +122,12 @@ jobs:
     outputs:
       name: Home Connect API changelog
       value: ${{ steps.fetch.outputs.changelog }}
+      url: ${{ env.URL }}
+    env:
+      URL: https://developer.home-connect.com/changelog
     steps:
     - name: Retrieve API changelog
       id: fetch
-      env:
-        URL: https://developer.home-connect.com/changelog
       run: | # shell
         CHANGELOG=$(curl -s "$URL")
         echo "changelog<<EOF"      >> "$GITHUB_OUTPUT"

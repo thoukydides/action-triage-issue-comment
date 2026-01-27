@@ -9,6 +9,8 @@ export type DataSourceStatus = typeof DATA_SOURCE_STATUS[number];
 export interface DataSource {
     status:     DataSourceStatus;
     name:       string;
+    name_md?:   string;
+    url?:       string;
     value:      string;
     prompt?:    string;
 }
@@ -27,10 +29,12 @@ export function parseNeedsToSources(needsJSON: string): DataSource[] {
 
     // Convert to the internal data sources representation
     return Object.entries(needs).map(([job, { result, outputs }]) => ({
-        status: result,
-        name:   outputs?.name   ?? job,
-        value:  outputs?.value  ?? '',
-        prompt: outputs?.prompt
+        status:     result,
+        name:       outputs?.name       ?? job,
+        name_md:    outputs?.name_md,
+        url:        outputs?.url,
+        value:      outputs?.value      ?? '',
+        prompt:     outputs?.prompt
     }));
 }
 

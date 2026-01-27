@@ -20,9 +20,9 @@ export function makeComment(report: ReportRow[]): string {
         '| Relevance | Data Source | Detail',
         '| :-------: | ----------- | ------',
         // Table body
-        ...report.map(({ status, name, detail }) => {
+        ...report.map(({ status, title, detail }) => {
             const icon = STATUS_EMOJI[status];
-            return `| ${icon} | ${name} | ${detail} |`;
+            return `| ${icon} | ${title} | ${detail} |`;
         })
     ];
     return lines.join('\n');

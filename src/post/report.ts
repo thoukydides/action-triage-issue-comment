@@ -14,26 +14,28 @@ const MAX_DETAIL_CHARS = 300;
 export type ReportStatus = 'unavailable' | AnalysisRelevance;
 export interface ReportRow {
     status: ReportStatus;
-    name:   string;
+    title:  string;
     detail: string;
 }
 
 // Convert the data sources and analysis into comment rows
 export function makeDataSourcesReport(sources: DataSource[], analysis: Analysis): ReportRow[] {
     const report: ReportRow[] = [];
-    for (const { name, status } of sources) {
+    for (const { name, name_md, url, status } of sources) {
+        const title = name_md?.trim() ? name_md
+            : url?.trim() ? `[${name}](${url})` : name;
         switch (status) {
         case 'success': {
             const sourceAnalysis = analysis.data_sources.find(source => source.name === name);
             assertIsDefined(sourceAnalysis);
             const { relevance, explanation } = sourceAnalysis;
             if (relevance !== 'not applicable') {
-                report.push({ status: relevance, name, detail: sanitiseText(explanation) });
+                report.push({ status: relevance, title, detail: sanitiseText(explanation) });
             }
             break;
         }
         case 'failure':
-            report.push({ status: 'unavailable', name, detail: 'Not available *(check workflow run for details)*' });
+            report.push({ status: 'unavailable', title, detail: 'Not available *(check workflow run for details)*' });
             break;
         case 'skipped':
             // Exclude skipped data sources from the comment
@@ -54,15 +56,16 @@ export async function makeVersionReport(github: InstanceType<typeof GitHub>, ana
 
     // Report depends on whether the issue referenced the latest release
     const latestPublished = formatDateTime(latestRelease.published_at);
+    const latestReleaseLink = `[${latestRelease.version}](${latestRelease.url})`;
     return latestRelease.version === issueRelease.version ? {
         status: 'not relevant',
-        name:   'Release version',
-        detail: `Issue references the latest release **${latestRelease.version}**`
+        title:   'Release version',
+        detail: `Issue references the latest release ${latestReleaseLink}`
     } : {
         status: 'possibly relevant',
-        name:   'Release version',
+        title:   'Release version',
         detail: `Issue references release **${issueRelease.version}**,`
-                + ` but **${latestRelease.version}** was released ${latestPublished}`
+                + ` but **${latestReleaseLink}** was released ${latestPublished}`
     };
 }
 
