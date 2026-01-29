@@ -1,10 +1,10 @@
 # `action-triage-issue-comment`
 
-This action uses AI to analyse dynamic data sources related to a project to determine their relevancy to an issue, and then post a comment with the result if it is likely to be useful. At a high level, the action performs the following steps:
+This action uses Google Gemini to analyse dynamic data sources related to a project to determine their relevancy to an issue, and then post a comment with the result if it is likely to be useful. At a high level, the action performs the following steps:
 - **Format Data Sources:** Prepares the supplied raw information into a format suitable for the AI model's input context.
 - **Fetch Issue**: Retrieves the issue body (and any non-bot comments that have already been posted).
 - **Truncate Content**: Intelligently truncates logs, code blocks, and long text to fit the AI model's context limit.
-- **Generate Assessment**: Uses GitHub Models to determine the relevancy of the provided information to the issue.
+- **Generate Assessment**: Uses Google AI Studio to determine the relevancy of the provided information to the issue.
 - **Generate and Post Comment**: If there is any relevancy, then formats a comment with the results and posts it to the issue.
 
 > [!CAUTION]
@@ -13,19 +13,12 @@ This action uses AI to analyse dynamic data sources related to a project to dete
 ## Prerequisites
 
 Before using this workflow, ensure:
-- GitHub Models is enabled for this repository (Settings → Models → Enabled).
-- The workflow has `issues: write`, `contents: read`, and `models: read` permissions (either via the default `GITHUB_TOKEN` or a fine-grained token).
-- You understand the [rate limits](https://docs.github.com/en/github-models/use-github-models/prototyping-with-ai-models#rate-limits) for your usage tier.
+- The workflow has `issues: write` and `contents: read` permissions (either via the default `GITHUB_TOKEN` or a fine-grained token).
+- You have created a [Gemini API key](https://ai.google.dev/gemini-api/docs/api-key) and placed it in a repository secret (e.g. `GEMINI_API_KEY`).
+- You understand the [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) for your chosen model and usage tier.
 
-## Rate Limits and Concurrency
-
-Each invocation makes one GitHub Models API call. At the time of writing, the default configuration uses a model on the **High** rate limit tier; on the free tier this is currently limited to:
-- 2 concurrent requests
-- 10 requests/minute
-- 50 requests/day
-
-> [!CAUTION]
-> This action is not designed for high-volume repositories. If multiple issues are opened in the same minute, these limits could be exceeded; subsequent runs will fail with HTTP 429 errors until the rate limit resets.
+> [!TIP]
+> Google AI Studio Gemini rate limits are per-project. Create multiple projects, each with its own API key, to increase quotas.
 
 ## Inputs
 
@@ -33,16 +26,17 @@ Various inputs are defined in the action to configure its operation:
 
 | Name | Description | Default
 | --- | --- | ---
+| `gemini_api_key`: The Google AI Studio Gemini API key | *required*
 | `issue_number` | The GitHub issue to analyse | *required*
 | `needs` | JSON data structure with the same shape as the GitHub Actions `needs` context, with one job per data source | *required*
 | `prompt_file` | Path to a custom `.prompt.yml` file containing the AI prompt template | Internal `'triage-issue-comment.prompt.yml'`
 | `prompt_vars` | Additional template variables in YAML format to substitute into the AI prompt | `''`
 | `input_prompt_tokens` | The number of input tokens reserved for the prompt template itself (deducted from `input_tokens` when truncating the issue) | `700`
-| `input_sources_tokens` | The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context) | `4000`
+| `input_sources_tokens` | The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context) | `30000`
 | `dry_run` | Disables actions that modify the issue (adding the comment and minimising previous comments) for testing | `false`
 
 > [!CAUTION]
-> The token count is measured using the `o200k_base` encoding. This is suitable for the default prompt's `openai/gpt-4.1` model (and other models in the `o1`, `o3`, `o4-mini`, `gpt-5`, `gpt-4.1`, and `gpt-4o` families). It will give unreliable results for models that use different encodings.
+> The input token count is estimated using the `o200k_base` encoding. This is intended for OpenAI models (in the `o1`, `o3`, `o4-mini`, `gpt-5`, `gpt-4.1`, and `gpt-4o` families). It provides a general guide for Gemini usage but is not precise.
 
 The `needs` input has the following properties:
 
@@ -80,7 +74,6 @@ name: Triage Issue
 permissions:
   issues: write
   contents: read
-  models: read
 
 on:
   issues:
@@ -142,6 +135,7 @@ jobs:
     - name: AI issue triage
       uses: thoukydides/action-triage-issue-comment@v1
       with:
+        gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
         # Use the event issue number for label triggers, or the manual input for workflow_dispatch
         issue_number: ${{ github.event.issue.number || fromJson(inputs.issue_number) }}
         needs: ${{ toJSON(needs) }}

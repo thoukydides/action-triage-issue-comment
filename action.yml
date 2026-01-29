@@ -6,6 +6,10 @@ branding:
   color: 'blue'
 
 inputs:
+  gemini_api_key:
+    description: The Google AI Studio Gemini API key
+    required: true
+    type: string
   issue_number:
     description: The GitHub issue to analyse
     type: number
@@ -24,11 +28,11 @@ inputs:
   input_prompt_tokens:
     description: The number of input tokens reserved for the prompt template itself (deducted from input_tokens when truncating the issue)
     type: number
-    default: 700 # Measured using https://platform.openai.com/tokenizer
+    default: 700 # Measured using https://aistudio.google.com/prompts/new_chat
   input_sources_tokens:
     description: The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context)
     type: number
-    default: 4000 # Half of the 8000 token input context limit
+    default: 30000
   dry_run:
     description: Disables actions that modify the issue (adding the comment and minimising previous comments) for testing
     type: boolean
@@ -54,6 +58,7 @@ runs:
       id: analyse
       uses: thoukydides/action-issue-ai-summary@v1
       with:
+        gemini_api_key: ${{ inputs.gemini_api_key }}
         issue_number: ${{ inputs.issue_number }}
         prompt_file: ${{ inputs.prompt_file || format('{0}/triage-issue-comment.prompt.yml', github.action_path) }}
         input_prompt_tokens: ${{ steps.context.outputs.prompt_tokens }}
