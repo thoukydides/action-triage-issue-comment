@@ -1,7 +1,8 @@
 // GitHub action
 // Copyright © 2026 Alexander Thoukydides
 
-import { hasProperties, isObject, isString, isStringEnum } from '../common/utils.js';
+import * as core from '@actions/core';
+import { hasProperties, isObject, isString, isStringEnum, plural } from '../common/utils.js';
 
 // The expected structure of the analysis JSON produced by the AI model
 const ANALYSIS_NATURE           = ['bug report', 'feature request', 'other support'] as const;
@@ -56,7 +57,9 @@ export function parseAnalysisJSON(analysisJson: string, sourceNames: string[]): 
         assertIs(explanation,   isString,                                   `${element}.explanation is not a string`);
         return name;
     });
-    if (sourceNames.length !== analysisSourceNames.length
+    if (!sourceNames.length && analysisSourceNames.length) {
+        core.info(`No successful data sources to analyse; ignoring model output for ${plural(analysisSourceNames.length, 'data source')}`);
+    } else if (sourceNames.length !== analysisSourceNames.length
         || !sourceNames.every(name => analysisSourceNames.includes(name))) {
         throw new Error('Analysis JSON data_sources does not match the expected sources');
     }
