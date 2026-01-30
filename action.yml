@@ -79,23 +79,11 @@ runs:
           const { default: fn } = await import('${{ github.action_path }}/dist/post.js');
           return await fn(github);
 
-    - name: Add the analysis comment to the workflow summary
-      env:
-        SUMMARY: |
-          # ${{ steps.analyse.outputs.issue_title }} [#${{ inputs.issue_number }}](${{ steps.analyse.outputs.issue_url }})
-          
-          ${{ steps.comment.outputs.result }}
-      shell: bash
-      run: | # shell
-        printf '%s' "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
-
     - name: Post the analysis comment
-      if: ${{ inputs.dry_run != 'true' && steps.comment.outputs.relevant == 'true' }}
+      if: ${{ steps.comment.outputs.relevant == 'true' }}
       uses: thoukydides/action-post-issue-comment@v1
       with:
         issue_number: ${{ inputs.issue_number }}
-        body: |
-          ${{ steps.comment.outputs.result }}
-          
-          Analysis performed by [${{ github.workflow }} #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        body: ${{ steps.comment.outputs.result }}
         marker: '<!-- ai-triage-analysis -->'
+        dry_run: ${{ inputs.dry_run }}
