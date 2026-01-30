@@ -1,7 +1,7 @@
 // GitHub action
 // Copyright © 2026 Alexander Thoukydides
 
-import { GitHub } from '@actions/github/lib/utils.js';
+import { context, GitHub } from '@actions/github/lib/utils.js';
 import { assertIsDefined } from '../common/utils.js';
 import { Analysis, AnalysisRelevance } from './analysis_json.js';
 import { getLatestRelease, getRelease } from './get_release.js';
@@ -22,8 +22,7 @@ export interface ReportRow {
 export function makeDataSourcesReport(sources: DataSource[], analysis: Analysis): ReportRow[] {
     const report: ReportRow[] = [];
     for (const { name, name_md, url, status } of sources) {
-        const title = name_md?.trim() ? name_md
-            : url?.trim() ? `[${name}](${url})` : name;
+        const title = name_md?.trim() ? name_md : url?.trim() ? `[${name}](${url})` : name;
         switch (status) {
         case 'success': {
             const sourceAnalysis = analysis.data_sources.find(source => source.name === name);
@@ -35,7 +34,7 @@ export function makeDataSourcesReport(sources: DataSource[], analysis: Analysis)
             break;
         }
         case 'failure':
-            report.push({ status: 'unavailable', title, detail: 'Not available *(check workflow run for details)*' });
+            report.push({ status: 'unavailable', title, detail: `Not available (see ${getWorkflowLink()} for details)` });
             break;
         case 'skipped':
             // Exclude skipped data sources from the comment
@@ -67,6 +66,14 @@ export async function makeVersionReport(github: InstanceType<typeof GitHub>, ana
         detail: `Issue references release **${issueRelease.version}**,`
                 + ` but **${latestReleaseLink}** was released ${latestPublished}`
     };
+}
+
+// Construct a Markdown link to this workflow run
+function getWorkflowLink(): string {
+    const { serverUrl, workflow, runId } = context;
+    const { owner, repo } = context.repo;
+    const workflow_url = `${serverUrl}/${owner}/${repo}/actions/runs/${runId}`;
+    return `[${workflow} #${runId}](${workflow_url})`;
 }
 
 // Pretty format a date and time
