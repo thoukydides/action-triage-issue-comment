@@ -27686,7 +27686,7 @@ function assertIs(value, test, msg) {
         throw new Error(`Analysis JSON validation failed: ${msg}`);
 }
 
-var github = {};
+var utils$1 = {};
 
 var context = {};
 
@@ -27752,8 +27752,6 @@ function requireContext () {
 	
 	return context;
 }
-
-var utils$1 = {};
 
 var utils = {};
 
@@ -31617,6 +31615,10 @@ function requireUtils () {
 	return utils$1;
 }
 
+var utilsExports = requireUtils();
+
+var github = {};
+
 var hasRequiredGithub;
 
 function requireGithub () {
@@ -31721,8 +31723,7 @@ const MAX_DETAIL_CHARS = 300;
 function makeDataSourcesReport(sources, analysis) {
     const report = [];
     for (const { name, name_md, url, status } of sources) {
-        const title = name_md?.trim() ? name_md
-            : url?.trim() ? `[${name}](${url})` : name;
+        const title = name_md?.trim() ? name_md : url?.trim() ? `[${name}](${url})` : name;
         switch (status) {
             case 'success': {
                 const sourceAnalysis = analysis.data_sources.find(source => source.name === name);
@@ -31734,7 +31735,7 @@ function makeDataSourcesReport(sources, analysis) {
                 break;
             }
             case 'failure':
-                report.push({ status: 'unavailable', title, detail: 'Not available *(check workflow run for details)*' });
+                report.push({ status: 'unavailable', title, detail: `Not available (see ${getWorkflowLink()} for details)` });
                 break;
         }
     }
@@ -31762,6 +31763,13 @@ async function makeVersionReport(github, analysis) {
         detail: `Issue references release **${issueRelease.version}**,`
             + ` but **${latestReleaseLink}** was released ${latestPublished}`
     };
+}
+// Construct a Markdown link to this workflow run
+function getWorkflowLink() {
+    const { serverUrl, workflow, runId } = utilsExports.context;
+    const { owner, repo } = utilsExports.context.repo;
+    const workflow_url = `${serverUrl}/${owner}/${repo}/actions/runs/${runId}`;
+    return `[${workflow} #${runId}](${workflow_url})`;
 }
 // Pretty format a date and time
 function formatDateTime(date) {
