@@ -4,7 +4,7 @@ messages:
 
   - role: system
     content: |- # markdown
-      You are an assistant supporting issue triage for @{{owner}}.
+      You are an assistant supporting issue triage for @{{owner}} and their {{repository}} project.
 
       A GitHub Issue has been raised and a range of dynamic Data Sources have been collected to help triage it. Analyse the information provided to determine:
 

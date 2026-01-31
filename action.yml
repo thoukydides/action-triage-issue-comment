@@ -28,7 +28,7 @@ inputs:
   input_prompt_tokens:
     description: The number of input tokens reserved for the prompt template itself (deducted from input_tokens when truncating the issue)
     type: number
-    default: 700 # Measured using https://aistudio.google.com/prompts/new_chat
+    default: 1200 # Measured using https://aistudio.google.com/prompts/new_chat
   input_sources_tokens:
     description: The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context)
     type: number

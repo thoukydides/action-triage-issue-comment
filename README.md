@@ -31,7 +31,7 @@ Various inputs are defined in the action to configure its operation:
 | `needs` | JSON data structure with the same shape as the GitHub Actions `needs` context, with one job per data source | *required*
 | `prompt_file` | Path to a custom `.prompt.yml` file containing the AI prompt template | Internal `'triage-issue-comment.prompt.yml'`
 | `prompt_vars` | Additional template variables in YAML format to substitute into the AI prompt | `''`
-| `input_prompt_tokens` | The number of input tokens reserved for the prompt template itself (deducted from `input_tokens` when truncating the issue) | `700`
+| `input_prompt_tokens` | The number of input tokens reserved for the prompt template itself (deducted from `input_tokens` when truncating the issue) | `1200`
 | `input_sources_tokens` | The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context) | `30000`
 | `dry_run` | Disables actions that modify the issue (adding the comment and minimising previous comments) for testing | `false`
 
