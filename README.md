@@ -1,11 +1,11 @@
 # `action-triage-issue-comment`
 
-This action uses Google Gemini to analyse dynamic data sources related to a project to determine their relevancy to an issue, and then post a comment with the result if it is likely to be useful. At a high level, the action performs the following steps:
+This action uses Google Gemini to analyse dynamic data sources related to a project to determine their relevancy to an issue, again to assess the issue for quality problems, and then post a comment with the result if it is likely to be useful. At a high level, the action performs the following steps:
 - **Format Data Sources:** Prepares the supplied raw information into a format suitable for the AI model's input context.
-- **Fetch Issue**: Retrieves the issue body (and any non-bot comments that have already been posted).
-- **Truncate Content**: Intelligently truncates logs, code blocks, and long text to fit the AI model's context limit.
-- **Generate Assessment**: Uses Google AI Studio to determine the relevancy of the provided information to the issue.
-- **Generate and Post Comment**: If there is any relevancy, then formats a comment with the results and posts it to the issue.
+- **Review Data Sources:** Uses Google AI Studio to determine the relevancy of the provided information to the issue.
+- **Generate Data Sources Comment:** If there is any relevancy, then formats a comment with the results.
+- **Review Issue Quality:** Uses Google AI Studio to check for common problems with the issue, such as using a single issue for multiple distinct problems or using an unsuitable issue template. If any problems are identified then the model drafts a comment advising the user how to proceed.
+- **Post Comment:** If either review produced a comment then post it, optionally closing and relabelling the issue if appropriate.
 
 > [!CAUTION]
 > This action is provided for my own use and published in case it is useful to others. If you rely on it, fork and maintain your own copy. No support or stability guarantees are offered.
@@ -14,7 +14,7 @@ This action uses Google Gemini to analyse dynamic data sources related to a proj
 
 Before using this workflow, ensure:
 - The workflow has `issues: write` and `contents: read` permissions (either via the default `GITHUB_TOKEN` or a fine-grained token).
-- You have created a [Gemini API key](https://ai.google.dev/gemini-api/docs/api-key) and placed it in a repository secret (e.g. `GEMINI_API_KEY`).
+- You have created one or two [Gemini API keys](https://ai.google.dev/gemini-api/docs/api-key) and placed them in repository secrets (e.g. `GEMINI_API_KEY` and `GEMINI_API_KEY2`).
 - You understand the [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) for your chosen model and usage tier.
 
 > [!TIP]
@@ -122,10 +122,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: AI issue triage
-        if: contains(needs.*.result, 'success') || contains(needs.*.result, 'failure')
         uses: thoukydides/action-triage-issue-comment@v1
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_api_key2: ${{ secrets.GEMINI_API_KEY2 }}
           # Use the event issue number for label triggers, or the manual input for workflow_dispatch
           issue_number: ${{ github.event.issue.number || fromJson(inputs.issue_number) }}
           needs: ${{ toJSON(needs) }}
