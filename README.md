@@ -29,9 +29,7 @@ Various inputs are defined in the action to configure its operation:
 | `gemini_api_key`: The Google AI Studio Gemini API key | *required*
 | `issue_number` | The GitHub issue to analyse | *required*
 | `needs` | JSON data structure with the same shape as the GitHub Actions `needs` context, with one job per data source | *required*
-| `prompt_file` | Path to a custom `.prompt.yml` file containing the AI prompt template | Internal `'triage-issue-comment.prompt.yml'`
-| `prompt_vars` | Additional template variables in YAML format to substitute into the AI prompt | `''`
-| `input_prompt_tokens` | The number of input tokens reserved for the prompt template itself (deducted from `input_tokens` when truncating the issue) | `1200`
+| `guidance_file` | Path to a file containing project-specific guidance for the AI when assessing the issue quality | *required*
 | `input_sources_tokens` | The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context) | `30000`
 | `dry_run` | Disables actions that modify the issue (adding the comment and minimising previous comments) for testing | `false`
 
@@ -52,18 +50,6 @@ The `needs` input has the following properties:
 Note:
 - `skipped` sources are dropped (not supplied to the AI model or included in the output comment)
 - `failure` sources are not supplied to the AI model, but are listed as unavailable in the output comment
-
-## Prompt Variables
-
-The following variables are substituted in the `.prompt.yml` template:
-
-| Variable | Description
-| --- | ---
-| `{{context}}` | The issue body and comments as a minified JSON string (truncated as necessary to fit within the model's input context)
-| `{{owner}}` | The user ID of the repo owner
-| `{{release}}` | The tag of the latest non-prerelease, or `'latest release'` if none
-| `{{user}}` | The user ID of the issue's creator
-| `{{data}}` | The prepared data sources (derived from `needs`) as a minified JSON string (truncated as necessary to fit within the model's input context)
 
 ## Usage
 
@@ -119,27 +105,30 @@ jobs:
     env:
       URL: https://developer.home-connect.com/changelog
     steps:
-    - name: Retrieve API changelog
-      id: fetch
-      run: | # shell
-        CHANGELOG=$(curl -s "$URL")
-        echo "changelog<<EOF"      >> "$GITHUB_OUTPUT"
-        printf '%s\n' "$CHANGELOG" >> "$GITHUB_OUTPUT"
-        echo "EOF"                 >> "$GITHUB_OUTPUT"
+      - name: Retrieve API changelog
+        id: fetch
+        run: | # shell
+          CHANGELOG=$(curl -s "$URL")
+          echo "changelog<<EOF"      >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$CHANGELOG" >> "$GITHUB_OUTPUT"
+          echo "EOF"                 >> "$GITHUB_OUTPUT"
 
   collate:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
     needs: [run-test, api-changelog]
     steps:
-    - name: AI issue triage
-      uses: thoukydides/action-triage-issue-comment@v1
-      with:
-        gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-        # Use the event issue number for label triggers, or the manual input for workflow_dispatch
-        issue_number: ${{ github.event.issue.number || fromJson(inputs.issue_number) }}
-        needs: ${{ toJSON(needs) }}
-        dry_run: ${{ inputs.dry_run }}
+      - uses: actions/checkout@v4
+      - name: AI issue triage
+        if: contains(needs.*.result, 'success') || contains(needs.*.result, 'failure')
+        uses: thoukydides/action-triage-issue-comment@v1
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          # Use the event issue number for label triggers, or the manual input for workflow_dispatch
+          issue_number: ${{ github.event.issue.number || fromJson(inputs.issue_number) }}
+          needs: ${{ toJSON(needs) }}
+          guidance_file: ./.github/prompts/issue-quality-guidance.md
+          dry_run: ${{ inputs.dry_run }}
 ```
 
 > [!TIP]

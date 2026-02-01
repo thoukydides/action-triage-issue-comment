@@ -18,17 +18,10 @@ inputs:
     description: JSON data structure with the same shape as the GitHub Actions 'needs' context, with one job per data source
     type: string
     required: true
-  prompt_file:
-    description: Path to a custom .prompt.yml file containing the AI prompt template
+  guidance_file:
+    description: Path to a file containing project-specific guidance for the AI when assessing the issue quality
     type: string
-  prompt_vars:
-    description: Additional template variables in YAML format to substitute into the AI prompt
-    type: string
-    default: ''
-  input_prompt_tokens:
-    description: The number of input tokens reserved for the prompt template itself (deducted from input_tokens when truncating the issue)
-    type: number
-    default: 1200 # Measured using https://aistudio.google.com/prompts/new_chat
+    required: true
   input_sources_tokens:
     description: The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context)
     type: number
@@ -42,48 +35,98 @@ runs:
   using: composite
 
   steps:
-    - name: Pre-process the data sources for LLM input context
-      id: context
+    - name: Prepare data sources for LLM input context
+      id: sources-pre
       uses: actions/github-script@v7
       env:
         INPUT_NEEDS:                ${{ inputs.needs }}
         INPUT_INPUT_SOURCES_TOKENS: ${{ inputs.input_sources_tokens }}
-        INPUT_INPUT_PROMPT_TOKENS:  ${{ inputs.input_prompt_tokens }}
+        INPUT_INPUT_PROMPT_TOKENS:  1200 # Measured using https://aistudio.google.com/prompts/new_chat
       with:
         script: | # javascript
           const { default: fn } = await import('${{ github.action_path }}/dist/pre.js');
           return await fn(github);
 
-    - name: Analyse the data sources and issue
-      id: analyse
+    - name: Analyse the issue and data sources
+      id: sources-ai
       uses: thoukydides/action-issue-ai-summary@v1
       with:
-        gemini_api_key: ${{ inputs.gemini_api_key }}
-        issue_number: ${{ inputs.issue_number }}
-        prompt_file: ${{ inputs.prompt_file || format('{0}/triage-issue-comment.prompt.yml', github.action_path) }}
-        input_prompt_tokens: ${{ steps.context.outputs.prompt_tokens }}
-        prompt_vars: |
+        gemini_api_key:       ${{ inputs.gemini_api_key }}
+        issue_number:         ${{ inputs.issue_number }}
+        prompt_file:          ${{ github.action_path }}/issue-sources-comment.prompt.yml
+        input_prompt_tokens:  ${{ steps.context.outputs.prompt_tokens }}
+        prompt_vars: | # yaml
           data: >-
-            ${{ steps.context.outputs.result }}
-          ${{ inputs.prompt_vars }}
+            ${{ steps.sources-pre.outputs.result }}
 
-    - name: Post-process the LLM output to prepare a comment
-      id: comment
+    - name: Prepare a data sources comment
+      id: sources-post
       uses: actions/github-script@v7
       env:
         INPUT_NEEDS:    ${{ inputs.needs }}
-        ANALYSIS:       ${{ steps.analyse.outputs.response }}
+        ANALYSIS:       ${{ steps.sources-ai.outputs.response }}
       with:
         result-encoding: string
         script: | # javascript
           const { default: fn } = await import('${{ github.action_path }}/dist/post.js');
           return await fn(github);
 
-    - name: Post the analysis comment
-      if: ${{ steps.comment.outputs.relevant == 'true' }}
+    - name: Analyse the issue quality
+      id: quality-ai
+      uses: thoukydides/action-issue-ai-summary@v1
+      with:
+        gemini_api_key:       ${{ inputs.gemini_api_key }}
+        issue_number:         ${{ inputs.issue_number }}
+        prompt_file:          ${{ github.action_path }}/issue-quality-comment.prompt.yml
+        input_prompt_tokens:  1000 # Measured using https://aistudio.google.com/prompts/new_chat
+        prompt_vars: | # yaml
+          comment: ${{ toJSON(steps.sources-post.outputs.comment) }}
+        prompt_vars_files: | # yaml
+          guidance: ${{ inputs.guidance_file }}
+
+    - name: Choose comment and action
+      id: quality-post
+      uses: actions/github-script@v7
+      env:
+        SOURCES_RELEVANT: ${{ steps.sources-post.outputs.relevant }}
+        SOURCES_COMMENT:  ${{ steps.sources-post.outputs.result }}
+        RESPONSE:         ${{ steps.quality-ai.outputs.response }}
+      with:
+        result-encoding: string
+        script: | # javascript
+          const response = JSON.parse(process.env.RESPONSE);
+
+          // Default to the data sources comment and decision
+          let post_comment  = JSON.parse(process.env.SOURCES_RELEVANT);
+          let comment       = process.env.SOURCES_COMMENT;
+
+          // Override the default action if quality issues were identified
+          if (response.quality_comment) {
+              if (response.close_issue) {
+                  // Wrong issue template or otherwise invalid issue
+                  comment = response.quality_comment;
+                  core.setOutput('close_issue', true);
+                  core.setOutput('labels_set',  ['invalid']);
+              } else {
+                  // Valid issue, but other quality issues detected
+                  comment = post_comment
+                      ? `${comment}\n\n${response.quality_comment}`
+                      : response.quality_comment;
+              }
+              post_comment = true;
+          }
+
+          // Set common outputs
+          core.setOutput('comment',       comment);
+          core.setOutput('post_comment',  post_comment);
+            
+    - name: Post comment
+      if: ${{ steps.quality-post.outputs.post_comment }}
       uses: thoukydides/action-post-issue-comment@v1
       with:
         issue_number: ${{ inputs.issue_number }}
-        body: ${{ steps.comment.outputs.result }}
-        marker: '<!-- ai-triage-analysis -->'
-        dry_run: ${{ inputs.dry_run }}
+        body:         ${{ steps.quality-post.outputs.comment }}
+        labels_set:   ${{ steps.quality-post.outputs.labels_set }}
+        close_issue:  ${{ steps.quality-post.outputs.close_issue }}
+        marker:       '<!-- ai-triage-analysis -->'
+        dry_run:      ${{ inputs.dry_run }}
