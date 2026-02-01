@@ -16,7 +16,7 @@ inputs:
     required: true
   include_comments:
     description: Should comments be included in the model's context
-    type: string
+    type: boolean
     default: true
   needs:
     description: JSON data structure with the same shape as the GitHub Actions 'needs' context, with one job per data source
