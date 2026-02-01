@@ -27,6 +27,7 @@ Various inputs are defined in the action to configure its operation:
 | Name | Description | Default
 | --- | --- | ---
 | `gemini_api_key`: The Google AI Studio Gemini API key | *required*
+| `gemini_api_key2`: An optional second Google AI Studio Gemini API key | `''`
 | `issue_number` | The GitHub issue to analyse | *required*
 | `include_comments` | Should comments be included in the model's context | `true`
 | `needs` | JSON data structure with the same shape as the GitHub Actions `needs` context, with one job per data source | *required*

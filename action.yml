@@ -10,6 +10,10 @@ inputs:
     description: The Google AI Studio Gemini API key
     required: true
     type: string
+  gemini_api_key2:
+    description: An optional second Google AI Studio Gemini API key
+    type: string
+    default: ''
   issue_number:
     description: The GitHub issue to analyse
     type: number
@@ -80,7 +84,7 @@ runs:
       id: quality-ai
       uses: thoukydides/action-issue-ai-summary@v1
       with:
-        gemini_api_key:       ${{ inputs.gemini_api_key }}
+        gemini_api_key:       ${{ inputs.gemini_api_key2 || inputs.gemini_api_key }}
         issue_number:         ${{ inputs.issue_number }}
         include_comments:     ${{ inputs.include_comments }}
         prompt_file:          ${{ github.action_path }}/issue-quality-comment.prompt.yml
