@@ -99,13 +99,14 @@ runs:
           // Default to the data sources comment and decision
           let post_comment  = JSON.parse(process.env.SOURCES_RELEVANT);
           let comment       = process.env.SOURCES_COMMENT;
+          let close_issue   = false;
 
           // Override the default action if quality issues were identified
           if (response.quality_comment) {
               if (response.close_issue) {
                   // Wrong issue template or otherwise invalid issue
                   comment = response.quality_comment;
-                  core.setOutput('close_issue', true);
+                  close_issue = true;
                   core.setOutput('labels_set',  ['invalid']);
               } else {
                   // Valid issue, but other quality issues detected
@@ -119,6 +120,7 @@ runs:
           // Set common outputs
           core.setOutput('comment',       comment);
           core.setOutput('post_comment',  post_comment);
+          core.setOutput('close_issue',   close_issue);
             
     - name: Post comment
       if: ${{ steps.quality-post.outputs.post_comment }}
