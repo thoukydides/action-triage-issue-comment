@@ -14,6 +14,10 @@ inputs:
     description: The GitHub issue to analyse
     type: number
     required: true
+  include_comments:
+    description: Should comments be included in the model's context
+    type: string
+    default: true
   needs:
     description: JSON data structure with the same shape as the GitHub Actions 'needs' context, with one job per data source
     type: string
@@ -53,6 +57,7 @@ runs:
       with:
         gemini_api_key:       ${{ inputs.gemini_api_key }}
         issue_number:         ${{ inputs.issue_number }}
+        include_comments:     ${{ inputs.include_comments }}
         prompt_file:          ${{ github.action_path }}/issue-sources-comment.prompt.yml
         input_prompt_tokens:  ${{ steps.sources-pre.outputs.prompt_tokens }}
         prompt_vars: | # yaml
@@ -77,6 +82,7 @@ runs:
       with:
         gemini_api_key:       ${{ inputs.gemini_api_key }}
         issue_number:         ${{ inputs.issue_number }}
+        include_comments:     ${{ inputs.include_comments }}
         prompt_file:          ${{ github.action_path }}/issue-quality-comment.prompt.yml
         input_prompt_tokens:  1000 # Measured using https://aistudio.google.com/prompts/new_chat
         prompt_vars: | # yaml
