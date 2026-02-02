@@ -32,6 +32,7 @@ Various inputs are defined in the action to configure its operation:
 | `include_comments` | Should comments be included in the model's context | `true`
 | `needs` | JSON data structure with the same shape as the GitHub Actions `needs` context, with one job per data source | *required*
 | `guidance_file` | Path to a file containing project-specific guidance for the AI when assessing the issue quality | *required*
+| `guidance_file_tokens` | Size of the guidance_file contents in tokens (used to calculate the input tokens required for the prompt) | *required*
 | `input_sources_tokens` | The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context) | `30000`
 | `dry_run` | Disables actions that modify the issue (adding the comment and minimising previous comments) for testing | `false`
 
@@ -130,6 +131,7 @@ jobs:
           issue_number: ${{ github.event.issue.number || fromJson(inputs.issue_number) }}
           needs: ${{ toJSON(needs) }}
           guidance_file: ./.github/prompts/issue-quality-guidance.md
+          guidance_file_tokens: 650
           dry_run: ${{ inputs.dry_run }}
 ```
 

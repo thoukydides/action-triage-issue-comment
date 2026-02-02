@@ -12,9 +12,10 @@ import { jsonTokens } from './tokens.js';
 // Script entry point
 export default function run(_github: InstanceType<typeof GitHub>): SourceContext[] {
     // Action inputs
-    const needs         =        core.getInput('needs',                 { required: true });
-    const maxTokens     = Number(core.getInput('input_sources_tokens',  { required: true }));
-    const promptTokens  = Number(core.getInput('input_prompt_tokens',   { required: true }));
+    const needs                 =        core.getInput('needs',                 { required: true });
+    const maxTokens             = Number(core.getInput('input_sources_tokens',  { required: true }));
+    const guidanceFileTokens    = Number(core.getInput('guidance_file_tokens',  { required: true }));
+    const promptTokens          = Number(core.getInput('prompt_tokens',         { required: true }));
 
     // Parse the needs input as JSON and select sources to be analysed
     const sources = parseNeedsToSources(needs);
@@ -36,6 +37,6 @@ export default function run(_github: InstanceType<typeof GitHub>): SourceContext
     core.info(`Final data sources context: ${truncatedContextTokens} tokens`);
 
     // Provide the updated token count as a discrete output and return the context
-    core.setOutput('prompt_tokens', promptTokens + truncatedContextTokens);
+    core.setOutput('prompt_tokens', promptTokens + guidanceFileTokens + truncatedContextTokens);
     return truncatedContext;
 }

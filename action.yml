@@ -30,6 +30,10 @@ inputs:
     description: Path to a file containing project-specific guidance for the AI when assessing the issue quality
     type: string
     required: true
+  guidance_file_tokens:
+    description: Size of the guidance_file contents in tokens (used to calculate the input tokens required for the prompt)
+    type: number
+    required: true
   input_sources_tokens:
     description: The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context)
     type: number
@@ -48,8 +52,9 @@ runs:
       uses: actions/github-script@v7
       env:
         INPUT_NEEDS:                ${{ inputs.needs }}
+        INPUT_GUIDANCE_FILE_TOKENS: ${{ inputs.guidance_file_tokens }}
         INPUT_INPUT_SOURCES_TOKENS: ${{ inputs.input_sources_tokens }}
-        INPUT_INPUT_PROMPT_TOKENS:  1200 # Measured using https://aistudio.google.com/prompts/new_chat
+        INPUT_PROMPT_TOKENS:        1200 # Measured using https://aistudio.google.com/prompts/new_chat
       with:
         script: | # javascript
           const { default: fn } = await import('${{ github.action_path }}/dist/pre.js');
