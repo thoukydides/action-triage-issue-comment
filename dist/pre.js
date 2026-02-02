@@ -28099,7 +28099,8 @@ function run(_github) {
     // Action inputs
     const needs = coreExports.getInput('needs', { required: true });
     const maxTokens = Number(coreExports.getInput('input_sources_tokens', { required: true }));
-    const promptTokens = Number(coreExports.getInput('input_prompt_tokens', { required: true }));
+    const guidanceFileTokens = Number(coreExports.getInput('guidance_file_tokens', { required: true }));
+    const promptTokens = Number(coreExports.getInput('prompt_tokens', { required: true }));
     // Parse the needs input as JSON and select sources to be analysed
     const sources = parseNeedsToSources(needs);
     const analyseSources = sources.filter(({ status }) => status === 'success');
@@ -28115,7 +28116,7 @@ function run(_github) {
     const truncatedContextTokens = jsonTokens(truncatedContext);
     coreExports.info(`Final data sources context: ${truncatedContextTokens} tokens`);
     // Provide the updated token count as a discrete output and return the context
-    coreExports.setOutput('prompt_tokens', promptTokens + truncatedContextTokens);
+    coreExports.setOutput('prompt_tokens', promptTokens + guidanceFileTokens + truncatedContextTokens);
     return truncatedContext;
 }
 
