@@ -34,7 +34,13 @@ Various inputs are defined in the action to configure its operation:
 | `guidance_file` | Path to a file containing project-specific guidance for the AI when assessing the issue quality | *required*
 | `guidance_file_tokens` | Size of the guidance_file contents in tokens (used to calculate the input tokens required for the prompt) | *required*
 | `input_sources_tokens` | The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context) | `30000`
+| `labels_set` | Optionally replace the set of labels on the issue with the provided set (JSON array of strings) after posting a comment | `''`
+| `close_issue` | Optionally close the issue after posting a comment | `false`
 | `dry_run` | Disables actions that modify the issue (adding the comment and minimising previous comments) for testing | `false`
+
+If this action posts a comment to the issue then `labels_set` and `close_issue` are combined with the AI model's recommendations to select additional actions:
+- If either `labels_set` is not an empty string, or the model recommends relabelling the issue, then the issue's labels are set to the union of both lists.
+- If either `close_issue` is `true`, or the model recommends closing the issue, then the issue is closed.
 
 > [!CAUTION]
 > The input token count is estimated using the `o200k_base` encoding. This is intended for OpenAI models (in the `o1`, `o3`, `o4-mini`, `gpt-5`, `gpt-4.1`, and `gpt-4o` families). It provides a general guide for Gemini usage but is not precise.

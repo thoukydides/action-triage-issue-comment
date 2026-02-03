@@ -38,6 +38,14 @@ inputs:
     description: The maximum number of input tokens to use for the data sources in the AI model's input (used to guide truncation of their values to fit the available context)
     type: number
     default: 30000
+  labels_set:
+    description: Optionally replace the set of labels on the issue with the provided set (JSON array of strings) after posting a comment#
+    type: string
+    default: ''
+  close_issue:
+    description: Optionally close the issue after posting a comment
+    type: boolean
+    default: false
   dry_run:
     description: Disables actions that modify the issue (adding the comment and minimising previous comments) for testing
     type: boolean
@@ -103,26 +111,32 @@ runs:
       id: quality-post
       uses: actions/github-script@v7
       env:
-        SOURCES_RELEVANT: ${{ steps.sources-post.outputs.relevant }}
-        SOURCES_COMMENT:  ${{ steps.sources-post.outputs.result }}
-        RESPONSE:         ${{ steps.quality-ai.outputs.response }}
+        INPUT_LABELS_SET:   ${{ inputs.labels_set }}
+        INPUT_CLOSE_ISSUE:  ${{ inputs.close_issue }}
+        SOURCES_RELEVANT:   ${{ steps.sources-post.outputs.relevant }}
+        SOURCES_COMMENT:    ${{ steps.sources-post.outputs.result }}
+        RESPONSE:           ${{ steps.quality-ai.outputs.response }}
       with:
         result-encoding: string
         script: | # javascript
           const response = JSON.parse(process.env.RESPONSE);
 
-          // Default to the data sources comment and decision
+          // Default comment to the data sources output
           let post_comment  = JSON.parse(process.env.SOURCES_RELEVANT);
           let comment       = process.env.SOURCES_COMMENT;
-          let close_issue   = false;
+
+          // Default post-comment operations to action inputs
+          let labels_set    = getInput('labels_set');
+          let close_issue   = getBooleanInput('close_issue');
 
           // Override the default action if quality issues were identified
           if (response.quality_comment) {
               if (response.close_issue) {
                   // Wrong issue template or otherwise invalid issue
                   comment = response.quality_comment;
+                  const inputLabels = JSON.parse(labels_set || '[]');
+                  labels_set = [...new Set([]...inputLabels, 'invalid'])];
                   close_issue = true;
-                  core.setOutput('labels_set',  ['invalid']);
               } else {
                   // Valid issue, but other quality issues detected
                   comment = post_comment
@@ -135,6 +149,7 @@ runs:
           // Set common outputs
           core.setOutput('comment',       comment);
           core.setOutput('post_comment',  post_comment);
+          core.setOutput('labels_set',    labels_set);
           core.setOutput('close_issue',   close_issue);
             
     - name: Post comment
