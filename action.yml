@@ -104,7 +104,7 @@ runs:
         input_prompt_tokens:  1000 # Measured using https://aistudio.google.com/prompts/new_chat
         prompt_vars: | # yaml
           comment:            ${{ toJSON(steps.sources-post.outputs.comment) }}
-          needs:              ${{ toJSON(join(fromJSON(toJSON(fromJSON(inputs.needs).*.outputs.guidance) || '[]'), '\n\n')) }}
+          needs:              ${{ toJSON(join(fromJSON(inputs.needs).*.outputs.guidance, '\n\n')) }}
         prompt_vars_files: | # yaml
           guidance:           ${{ inputs.guidance_file }}
 
