@@ -13,6 +13,7 @@ export interface DataSource {
     url?:       string;
     value:      string;
     prompt?:    string;
+    guidance?:  string;
 }
 
 // GitHub Actions needs context
@@ -34,7 +35,8 @@ export function parseNeedsToSources(needsJSON: string): DataSource[] {
         name_md:    outputs?.name_md,
         url:        outputs?.url,
         value:      outputs?.value      ?? '',
-        prompt:     outputs?.prompt
+        prompt:     outputs?.prompt,
+        guidance:   outputs?.guidance
     }));
 }
 

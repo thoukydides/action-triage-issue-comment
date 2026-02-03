@@ -27591,7 +27591,8 @@ function parseNeedsToSources(needsJSON) {
         name_md: outputs?.name_md,
         url: outputs?.url,
         value: outputs?.value ?? '',
-        prompt: outputs?.prompt
+        prompt: outputs?.prompt,
+        guidance: outputs?.guidance
     }));
 }
 // Parse and validate a GitHub Needs object

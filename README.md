@@ -51,10 +51,11 @@ The `needs` input has the following properties:
 | --- | --- | ---
 | `needs.<job_id>.result` | The result of the job that generated this data source (`success`, `failure`, or `skipped`) | *required*
 | `needs.<job_id>.outputs.name` | Name of the data source, both for the AI model and used in the comment | `<job_id>`
-| `needs.<job_id>.outputs.name_md` | Optional display version of the data source name for use in the comment; may include Markdown formatting |
-| `needs.<job_id>.outputs.url` | Optional URL for the data source, used in the comment if `name_md` is not provided |
+| `needs.<job_id>.outputs.name_md` | Optional display version of the data source name for use in the comment; may include Markdown formatting | &nbsp;
+| `needs.<job_id>.outputs.url` | Optional URL for the data source, used in the comment if `name_md` is not provided | &nbsp;
 | `needs.<job_id>.outputs.value` | The value for this data source, e.g. error messages or changelog excerpt | `''`
-| `needs.<job_id>.outputs.prompt` | Optional brief instructions to include in the AI's prompt to guide its handling of this data source |
+| `needs.<job_id>.outputs.prompt` | Optional brief instructions to include in the AI's prompt to guide its handling of this data source | &nbsp;
+| `needs.<job_id>.outputs.guidance` | Optional additional guidance for the AI when assessing the issue quality | &nbsp;
 
 Note:
 - `skipped` sources are dropped (not supplied to the AI model or included in the output comment)

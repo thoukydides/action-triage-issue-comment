@@ -103,9 +103,10 @@ runs:
         prompt_file:          ${{ github.action_path }}/issue-quality-comment.prompt.yml
         input_prompt_tokens:  1000 # Measured using https://aistudio.google.com/prompts/new_chat
         prompt_vars: | # yaml
-          comment: ${{ toJSON(steps.sources-post.outputs.comment) }}
+          comment:            ${{ toJSON(steps.sources-post.outputs.comment) }}
+          needs:              ${{ toJSON(join(fromJSON(toJSON(fromJSON(inputs.needs).*.outputs.guidance) || '[]'), '\n\n')) }}
         prompt_vars_files: | # yaml
-          guidance: ${{ inputs.guidance_file }}
+          guidance:           ${{ inputs.guidance_file }}
 
     - name: Choose comment and action
       id: quality-post
