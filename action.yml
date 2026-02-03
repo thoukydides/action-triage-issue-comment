@@ -127,8 +127,8 @@ runs:
           let comment       = process.env.SOURCES_COMMENT;
 
           // Default post-comment operations to action inputs
-          let labels_set    = getInput('labels_set');
-          let close_issue   = getBooleanInput('close_issue');
+          let labels_set    = core.getInput('labels_set');
+          let close_issue   = core.getBooleanInput('close_issue');
 
           // Override the default action if quality issues were identified
           if (response.quality_comment) {
