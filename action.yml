@@ -135,7 +135,7 @@ runs:
                   // Wrong issue template or otherwise invalid issue
                   comment = response.quality_comment;
                   const inputLabels = JSON.parse(labels_set || '[]');
-                  labels_set = [...new Set([]...inputLabels, 'invalid'])];
+                  labels_set = [...new Set([...inputLabels, 'invalid'])];
                   close_issue = true;
               } else {
                   // Valid issue, but other quality issues detected
