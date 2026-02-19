@@ -27971,46 +27971,76 @@ function getTokensResult(maker, maxTokens, param = 0) {
 // Copyright © 2026 Alexander Thoukydides
 // Marker for omitted text
 const TRUNCATION_MARKER = '\n\n[…truncated…]\n\n';
-// Instantiate segmenter for sentences and words
+// Truncate text (try to use good break points, but meet target regardless)
 const sentenceSegmenter = new Intl.Segmenter(undefined, { granularity: 'sentence' });
 const wordSegmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
-// Truncate text (try to use good break points, but meet target regardless)
-function truncateText(value, maxChars) {
-    if (value.length <= maxChars)
-        return value;
+function truncateText(text, maxChars) {
+    if (text.length <= maxChars)
+        return text;
     if (maxChars < TRUNCATION_MARKER.length)
         return '';
-    // Partition the text with different granularity
-    const textPartitions = [
-        value.split(/(\n+)/), // (lines)
-        [...sentenceSegmenter.segment(value)].map(({ segment }) => segment),
-        [...wordSegmenter.segment(value)].map(({ segment }) => segment)
-    ];
+    // Get the lengths of segments in the text according to a segmenter or regex
+    const getSegmentOffsets = (str, segmenter) => {
+        const lengths = [];
+        let lastIndex = 0;
+        for (const { index } of segmenter.segment(str)) {
+            if (index === 0)
+                continue;
+            lengths.push(index - lastIndex);
+            lastIndex = index;
+        }
+        if (lastIndex < str.length)
+            lengths.push(str.length - lastIndex);
+        return lengths;
+    };
+    const getRegexOffsets = (str, regex) => {
+        const lengths = [];
+        let lastIndex = 0;
+        let match;
+        while ((match = regex.exec(str)) !== null) {
+            lengths.push(match.index - lastIndex); // The text before the match
+            lengths.push(match[0].length); // The match itself (the delimiter)
+            lastIndex = regex.lastIndex;
+        }
+        if (lastIndex < str.length)
+            lengths.push(str.length - lastIndex);
+        return lengths;
+    };
     // Search for a partition under the target length
-    const choosePrefix = (partitions, maxChars) => {
+    const findBestBreak = (maxChars, isSuffix) => {
         const minChars = Math.floor(maxChars * 0.8);
-        let prefix = [];
-        for (const partition of partitions) {
+        const partitionChars = Math.min(maxChars + Math.round(Math.max(maxChars * 0.2, 100)), text.length);
+        const source = isSuffix ? text.slice(-partitionChars) : text.slice(0, partitionChars);
+        // Partition the text with different granularity
+        const partitionOffsets = [
+            getRegexOffsets(source, /\n\n+/g), // (paragraphs)
+            getRegexOffsets(source, /\n+/g), // (lines)
+            getSegmentOffsets(source, sentenceSegmenter),
+            getSegmentOffsets(source, wordSegmenter)
+        ];
+        let length = 0;
+        for (const offsets of partitionOffsets) {
+            if (isSuffix)
+                offsets.reverse();
             // Find longest length of this partition under the limit
-            prefix = [];
-            let length = 0;
-            for (const segment of partition) {
-                if (maxChars < length + segment.length)
+            length = 0;
+            for (const len of offsets) {
+                if (maxChars < length + len)
                     break;
-                prefix.push(segment);
-                length += segment.length;
+                length += len;
             }
             if (minChars <= length)
                 break;
         }
-        return prefix;
+        return length;
     };
-    const chooseSuffix = (partitions, maxChars) => choosePrefix(partitions.map(p => p.toReversed()), maxChars).toReversed();
     // Cut out the middle of the text to end up under the target
     const maxPrefixChars = Math.floor((maxChars - TRUNCATION_MARKER.length) / 2);
-    const prefix = choosePrefix(textPartitions, maxPrefixChars).join('').trimEnd();
-    const maxSuffixChars = Math.floor(maxChars - prefix.length - TRUNCATION_MARKER.length);
-    const suffix = chooseSuffix(textPartitions, maxSuffixChars).join('').trimStart();
+    const prefixIndex = findBestBreak(maxPrefixChars, false);
+    const prefix = text.substring(0, prefixIndex).trimEnd();
+    const maxSuffixChars = maxChars - prefix.length - TRUNCATION_MARKER.length;
+    const suffixIndex = findBestBreak(maxSuffixChars, true);
+    const suffix = text.substring(suffixIndex).trimStart();
     return `${prefix}${TRUNCATION_MARKER}${suffix}`;
 }
 
