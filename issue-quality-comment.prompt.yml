@@ -60,42 +60,38 @@ responseFormat: json_schema
 
 jsonSchema: |- # json
   {
-    "name": "Issue quality assessment",
-    "strict": true,
-    "schema": {
-      "type": "object",
-      "properties": {
-        "issues_identified": {
-          "type": "array",
-          "description": "List of primary issues identified (for your own analysis, not shown to user)",
-          "items": {
-            "type": "string"
-          }
-        },
-        "template_appropriate": {
-          "type": "boolean",
-          "description": "Was an appropriate issue template used?"
-        },
-        "multiple_issues": {
-          "type": "boolean",
-          "description": "Does this contain multiple independent issues?"
-        },
-        "quality_comment": {
-          "type": "string",
-          "description": "Markdown comment addressed to the user (empty if no issues found)"
-        },
-        "close_issue": {
-          "type": "boolean",
-          "description": "Should the issue be closed automatically?"
+    "type": "object",
+    "properties": {
+      "issues_identified": {
+        "type": "array",
+        "description": "List of primary issues identified (for your own analysis, not shown to user)",
+        "items": {
+          "type": "string"
         }
       },
-      "additionalProperties": false,
-      "required": [
-        "issues_identified",
-        "template_appropriate",
-        "multiple_issues",
-        "quality_comment",
-        "close_issue"
-      ]
-    }
+      "template_appropriate": {
+        "type": "boolean",
+        "description": "Was an appropriate issue template used?"
+      },
+      "multiple_issues": {
+        "type": "boolean",
+        "description": "Does this contain multiple independent issues?"
+      },
+      "quality_comment": {
+        "type": "string",
+        "description": "Markdown comment addressed to the user (empty if no issues found)"
+      },
+      "close_issue": {
+        "type": "boolean",
+        "description": "Should the issue be closed automatically?"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "issues_identified",
+      "template_appropriate",
+      "multiple_issues",
+      "quality_comment",
+      "close_issue"
+    ]
   }

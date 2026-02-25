@@ -61,64 +61,60 @@ responseFormat: json_schema
 
 jsonSchema: |- # json
   {
-    "name": "Issue triage analysis",
-    "strict": true,
-    "schema": {
-      "type": "object",
-      "properties": {
-        "issue_nature": {
-          "type": "string",
-          "description": "The category of issue",
-          "enum": [
-            "bug report",
-            "feature request",
-            "other support"
-          ]
-        },
-        "release_version": {
-          "type": "string",
-          "description": "The release version mentioned in the issue",
-          "pattern": "^(v\\d+\\.\\d+\\.\\d+|)$"
-        },
-        "data_sources": {
-          "type": "array",
-          "description": "List of data sources with relevance assessments",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string",
-                "description": "Name of the data source (identical to the input)"
-              },
-              "relevance": {
-                "enum": [
-                  "directly relevant",
-                  "possibly relevant",
-                  "not relevant",
-                  "not applicable"
-                ],
-                "type": "string",
-                "description": "Relevance of this data source to the issue"
-              },
-              "explanation": {
-                "type": "string",
-                "description": "Brief explanation of the assessment (plain text only)"
-              }
-            },
-            "additionalProperties": false,
-            "required": [
-              "name",
-              "relevance",
-              "explanation"
-            ]
-          }
-        }
+    "type": "object",
+    "properties": {
+      "issue_nature": {
+        "type": "string",
+        "description": "The category of issue",
+        "enum": [
+          "bug report",
+          "feature request",
+          "other support"
+        ]
       },
-      "additionalProperties": false,
-      "required": [
-        "issue_nature",
-        "release_version",
-        "data_sources"
-      ]
-    }
+      "release_version": {
+        "type": "string",
+        "description": "The release version mentioned in the issue",
+        "pattern": "^(v\\d+\\.\\d+\\.\\d+|)$"
+      },
+      "data_sources": {
+        "type": "array",
+        "description": "List of data sources with relevance assessments",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the data source (identical to the input)"
+            },
+            "relevance": {
+              "enum": [
+                "directly relevant",
+                "possibly relevant",
+                "not relevant",
+                "not applicable"
+              ],
+              "type": "string",
+              "description": "Relevance of this data source to the issue"
+            },
+            "explanation": {
+              "type": "string",
+              "description": "Brief explanation of the assessment (plain text only)"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "relevance",
+            "explanation"
+          ]
+        }
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "issue_nature",
+      "release_version",
+      "data_sources"
+    ]
   }
