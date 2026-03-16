@@ -2,7 +2,7 @@
 // Copyright © 2026 Alexander Thoukydides
 
 import * as core from '@actions/core';
-import { GitHub } from '@actions/github/lib/utils.js';
+import { GitHub } from '@actions/github/lib/utils';
 import { parseNeedsToSources } from '../common/needs_to_sources.js';
 import { makeSourcesContext, SourceContext } from './sources_context.js';
 import { plural } from '../common/utils.js';

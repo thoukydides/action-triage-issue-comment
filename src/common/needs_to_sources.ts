@@ -46,9 +46,9 @@ function parseNeeds(needsJSON: string): NeedsContext {
     let parsed: unknown;
     try {
         parsed = JSON.parse(needsJSON);
-    } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        throw new Error(`Failed to parse data sources "needs" JSON: ${message}`);
+    } catch (cause) {
+        const message = cause instanceof Error ? cause.message : String(cause);
+        throw new Error(`Failed to parse data sources "needs" JSON: ${message}`, { cause });
     }
 
     // Check that an object was provided

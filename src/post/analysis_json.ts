@@ -28,9 +28,9 @@ export function parseAnalysisJSON(analysisJson: string, sourceNames: string[]): 
     let analysis: unknown;
     try {
         analysis = JSON.parse(analysisJson);
-    } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        throw new Error(`Failed to parse analysis JSON: ${message}`);
+    } catch (cause) {
+        const message = cause instanceof Error ? cause.message : String(cause);
+        throw new Error(`Failed to parse analysis JSON: ${message}`, { cause });
     }
 
     // Check the root object

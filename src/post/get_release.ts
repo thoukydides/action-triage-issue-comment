@@ -3,8 +3,8 @@
 
 import * as core from '@actions/core';
 import { context } from '@actions/github';
-import { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types.js';
-import { GitHub } from '@actions/github/lib/utils.js';
+import { RestEndpointMethodTypes } from '@octokit/plugin-rest-endpoint-methods';
+import { GitHub } from '@actions/github/lib/utils';
 import { isValidDate } from '../common/utils.js';
 
 // GitHub REST API types

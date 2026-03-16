@@ -1,7 +1,7 @@
 // GitHub action
 // Copyright © 2026 Alexander Thoukydides
 
-import { context, GitHub } from '@actions/github/lib/utils.js';
+import { context, GitHub } from '@actions/github/lib/utils';
 import { assertIsDefined } from '../common/utils.js';
 import { Analysis, AnalysisRelevance } from './analysis_json.js';
 import { getLatestRelease, getRelease } from './get_release.js';
