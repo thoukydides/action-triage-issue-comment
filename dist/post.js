@@ -33410,7 +33410,7 @@ async function getOtherIssuesByUser(github, issue_number) {
         title,
         created_at,
         closed: state === 'closed',
-        labels: labels.map(l => typeof l === 'string' ? l : l.name ?? '').filter(Boolean)
+        labelled_as_invalid: labels.some(l => typeof l === 'string' ? l === 'invalid' : l.name === 'invalid')
     }));
 }
 

@@ -7,11 +7,11 @@ import { plural } from '../common/utils.js';
 
 // A simplified representation of an issue
 export interface Issue {
-    number:     number;
-    title:      string;
-    created_at: string;
-    closed:     boolean;
-    labels:     string[];
+    number:                 number;
+    title:                  string;
+    created_at:             string;
+    closed:                 boolean;
+    labelled_as_invalid:    boolean;
 }
 
 // Retrieve previous issues created by the same user
@@ -45,6 +45,6 @@ export async function getOtherIssuesByUser(github: InstanceType<typeof GitHub>, 
         title,
         created_at,
         closed:     state === 'closed',
-        labels:     labels.map(l => typeof l === 'string' ? l : l.name ?? '').filter(Boolean)
+        labelled_as_invalid: labels.some(l => typeof l === 'string' ? l === 'invalid' : l.name === 'invalid')
     }));
 }
