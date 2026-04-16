@@ -33382,10 +33382,45 @@ function isCommentRelevant(report, analysis) {
 
 // GitHub action
 // Copyright © 2026 Alexander Thoukydides
+// Retrieve previous issues created by the same user
+async function getOtherIssuesByUser(github, issue_number) {
+    // Get the issue details to identify the creator
+    const { owner, repo } = context$1.repo;
+    const issue = (await github.rest.issues.get({ owner, repo, issue_number })).data;
+    const creator = issue.user?.login;
+    info(`Retrieved issue ${issue_number} created by ${creator}`);
+    debug(`REST API Issue:\n${JSON.stringify(issue, null, 4)}`);
+    if (!creator) {
+        warning(`Issue #${issue_number} has no creator information; skipping search for previous issues`);
+        return [];
+    }
+    // Get other issues created by the same user during the last year
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const issues = await github.paginate(github.rest.issues.listForRepo, {
+        owner, repo, creator, state: 'all', sort: 'created', direction: 'desc', since: oneYearAgo.toISOString()
+    });
+    info(`Retrieved ${plural(issues.length, 'issue')} created by ${creator} in the last year`);
+    debug(`REST API Issues:\n${JSON.stringify(issues, null, 4)}`);
+    // Exclude the current issue and pull requests
+    const filteredIssues = issues.filter(i => i.number !== issue_number && !i.pull_request);
+    // Convert the issue details to a simpler format
+    return filteredIssues.map(({ number, title, created_at, state, labels }) => ({
+        number,
+        title,
+        created_at,
+        closed: state === 'closed',
+        labels: labels.map(l => typeof l === 'string' ? l : l.name ?? '').filter(Boolean)
+    }));
+}
+
+// GitHub action
+// Copyright © 2026 Alexander Thoukydides
 // Script entry point
 async function run(github) {
     // Action inputs
     const needs = getInput('needs', { required: true });
+    const issue_number = Number(getInput('issue_number', { required: true }));
     const analysisJSON = process.env.ANALYSIS ?? '';
     // Parse the input needs JSON and analysis JSON
     const sources = parseNeedsToSources(needs);
@@ -33403,8 +33438,12 @@ async function run(github) {
     info(`Comment:\n${comment}`);
     const relevant = isCommentRelevant(report, analysis);
     info(`Data sources ${relevant ? 'are' : 'are not'} relevant to the issue`);
-    // Provide the decision as a discrete output and return the comment
+    // Retrieve any other issues created by the same user during the last year
+    const otherIssues = await getOtherIssuesByUser(github, issue_number);
+    info(`User has created ${plural(otherIssues.length, 'other issue')} in the last year`);
+    // Provide the decision as a discrete output, returning comment and issues
     setOutput('relevant', relevant);
+    setOutput('other_issues', otherIssues);
     return comment;
 }
 
