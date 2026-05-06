@@ -22,7 +22,7 @@ messages:
         - Bug reports not using the Bug Report template (which collects diagnostic information)
         - Feature requests not using the Feature Request template
         - Users choosing simpler templates to avoid required fields
-      - Use the issue's labels to identify the template used; do not reinterpret incomplete or low-quality responses as "not using the template"
+      - Labels are authoritative for template classification; do not override labels, and do not infer template misuse from content quality, completeness, or perceived correctness
         - Missing logs, vague versions, or incomplete reproduction steps are not sufficient reason to close the issue
       - Determine if multiple substantial, independent issues are present that should be filed separately
         - Only separate if different devices with independent problems, unrelated feature requests, or mixture of a bug report and a feature request
