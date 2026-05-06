@@ -102,7 +102,7 @@ runs:
         issue_number:         ${{ inputs.issue_number }}
         include_comments:     ${{ inputs.include_comments }}
         prompt_file:          ${{ github.action_path }}/issue-quality-comment.prompt.yml
-        input_prompt_tokens:  1000 # Measured using https://aistudio.google.com/prompts/new_chat
+        input_prompt_tokens:  1200 # Measured using https://aistudio.google.com/prompts/new_chat
         prompt_vars: | # yaml
           comment:            ${{ toJSON(steps.sources-post.outputs.result) }}
           other_issues:       ${{ toJSON(steps.sources-post.outputs.other_issues) }}

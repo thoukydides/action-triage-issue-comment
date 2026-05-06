@@ -22,19 +22,22 @@ messages:
         - Bug reports not using the Bug Report template (which collects diagnostic information)
         - Feature requests not using the Feature Request template
         - Users choosing simpler templates to avoid required fields
+      - Use the issue's labels to identify the template used; do not reinterpret incomplete or low-quality responses as "not using the template"
+        - Missing logs, vague versions, or incomplete reproduction steps are not sufficient reason to close the issue
       - Determine if multiple substantial, independent issues are present that should be filed separately
         - Only separate if different devices with independent problems, unrelated feature requests, or mixture of a bug report and a feature request
         - Do **not** separate related questions about the same problem, follow-up clarifications, or minor asides
         - If separating, be specific about which parts go where, and suggest filing the most important issue first
-      - If problems are identified, draft a helpful comment guiding the user to refile appropriately; adjust tone if the user has a history of inappropriately raising issues (as indicated by multiple closed issues where `labelled_as_invalid` is `true`):
+      - If problems are identified, draft a helpful comment guiding the user to supply the missing information or refile appropriately; adjust tone if the user has a history of inappropriately raising issues (as indicated by multiple closed issues where `labelled_as_invalid` is `true`):
         - 1 past invalid issue: Provide friendly but direct guidance, mentioning the past invalid issue for context, but omitting any other encouragement or attempts to resolve the issue in its current form
         - 2+ past invalid issues: Provide a firm and blunt response, highlighting the pattern of behaviour with reference to the past issues, and clearly stating that no assistance will be provided unless issues are filed with the correct template and information
-      - Decide whether the issue should be closed (requiring the user to refile) or left open (with guidance), based on severity and user history
+      - Decide whether the issue should be closed due to use of the wrong template (requiring the user to refile) or left open (with guidance), based on severity and user history
+        - The issue should remain open if the user has made a good faith attempt to provide the required information, even if incomplete or using the wrong template, and has not previously had issues closed for invalidity
 
       Important guidelines:
       - Be kind and empathetic; users often make honest mistakes or do not understand the purpose of templates
       - Take a stronger stance with repeat offenders, but remain professional and avoid insults or accusations
-      - Make it easy for them to refile correctly
+      - Make it easy for them to provide missing information or refile correctly
       - Acknowledge their effort in reporting
       - Specifically mention what you identified in their issue (e.g. "It looks like you are reporting a bug with...", "I can see you are requesting...")
       - Do not nitpick about minor template mismatches if the essential information is present
