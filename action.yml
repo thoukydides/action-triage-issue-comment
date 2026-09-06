@@ -134,6 +134,8 @@ runs:
 
           // Override the default action if quality issues were identified
           if (response.quality_comment) {
+              // Fix AI mangling of Dosu links
+              response.quality_comment = response.quality_comment.replace(/github\.com\.dosu\.com/g, 'github.dosu.com');
               if (response.close_issue) {
                   // Wrong issue template or otherwise invalid issue
                   comment = response.quality_comment;
