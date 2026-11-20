@@ -15,6 +15,7 @@ const STATUS_EMOJI: Record<ReportStatus, string> = {
 
 // Convert the report rows into Markdown suitable for an issue comment
 export function makeComment(report: ReportRow[]): string {
+    if (report.length === 0) return 'n/a';
     const lines = [
         // Table header
         '| Relevance | Data Source | Detail',

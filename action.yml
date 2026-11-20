@@ -158,7 +158,7 @@ runs:
           core.setOutput('close_issue',   close_issue);
             
     - name: Post comment
-      if: ${{ steps.quality-post.outputs.post_comment }}
+      if: ${{ steps.quality-post.outputs.post_comment == 'true' }}
       uses: thoukydides/action-post-issue-comment@v1
       with:
         issue_number: ${{ inputs.issue_number }}
