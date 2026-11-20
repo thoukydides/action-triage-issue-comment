@@ -33357,6 +33357,8 @@ const STATUS_EMOJI = {
 };
 // Convert the report rows into Markdown suitable for an issue comment
 function makeComment(report) {
+    if (report.length === 0)
+        return 'n/a';
     const lines = [
         // Table header
         '| Relevance | Data Source | Detail',
